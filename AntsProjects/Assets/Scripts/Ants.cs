@@ -33,6 +33,7 @@ public class Ants : MonoBehaviour
     public float StoppingDistance = 0.5f;
     //public float InteractionDistance=1f;
     public float MovementSpeed;
+    public float DC_movementSpeed=2f;
     //private float MovementSpeedDefault;
     public float HungerRequirement = 50;
     public float HungerCapacity = 100;
@@ -67,6 +68,7 @@ public class Ants : MonoBehaviour
     public bool isOnScoutMode = false;
     public bool isMovingObject = false;
     public bool isGoingBackHome = false;
+    public bool isDoingDoubleChecker = false;
     [ColorUsage(true)]
     public Color32 Indications;
     public string FoodTag = "Food";
@@ -76,6 +78,7 @@ public class Ants : MonoBehaviour
     public Transform BirthPosition;
     public Transform HomeNest;
     public Transform InteractionPoint;
+    public Transform _doubleInteraction;
     public List<Transform> ObjectsInteracted;
     public NavMeshAgent Agent707;
     public Coroutine WanderCo;
@@ -437,15 +440,18 @@ public class Ants : MonoBehaviour
             }
         }
 
-        //if (MainTarget == null) return;
+        if(isDoingDoubleChecker)
+        {
+            if(_doubleInteraction.localPosition.z >= 1)
+            {
 
-        //if (Vector3.Distance(transform.position, MainTarget.position) < InteractionDistance)
-        //{
-        //    Agent707.speed = 0f;
-        //    Agent707.velocity = Vector3.zero;
-
-        //    CheckInteractions();
-        //}
+            }
+            else
+            {
+                _doubleInteraction.Translate(0, 0, DC_movementSpeed*Time.deltaTime, Space.Self);
+            }
+            
+        }
     }
     #endregion
 
@@ -650,6 +656,8 @@ public class Ants : MonoBehaviour
 
     void Feeding()
     {
+        DoubleChecker(true);
+
         HungerCapacity += HungerCrement;
 
         if (HungerCapacity >= HungerCapacityDefault)
@@ -754,5 +762,10 @@ public class Ants : MonoBehaviour
         AntScaleSize += new Vector3(GrowthSpeedScale, GrowthSpeedScale, GrowthSpeedScale) * Time.deltaTime;
 
         transform.localScale = AntScaleSize;
+    }
+
+    void DoubleChecker(bool _dc)
+    {
+        isDoingDoubleChecker = _dc;
     }
 }

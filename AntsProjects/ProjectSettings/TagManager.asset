@@ -8,6 +8,8 @@ TagManager:
   - Ants
   - FoodPlatform
   - Nest
+  - DecayFood
+  - InteractionPoint
   layers:
   - Default
   - TransparentFX

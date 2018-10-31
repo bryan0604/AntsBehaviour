@@ -108,4 +108,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad4fa28878d1d9441aa2de8026e8b106, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  FoodCapacity: 30
   IsInNest: 0
+  IsBeingCarried: 0
+  VoidFoodDecay: FoodDecay
+  myMats: {fileID: 0}
+  decaymats: {fileID: 2100000, guid: ff592517411beb64b89fc4440016517a, type: 2}

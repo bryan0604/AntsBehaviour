@@ -10,6 +10,7 @@ using UnityEngine.AI;
     // 2. attack other race
     // 3. protect eggs
     // 4. certain time outside will be back to nest
+    // 5. to Swarm or to Fetch back Food?
 
 public class Ants : MonoBehaviour
 {
@@ -22,11 +23,14 @@ public class Ants : MonoBehaviour
     public string Rank;
     public bool isQueen;
     public bool isSoldier;
+    public bool isGuardian;
     [Range(0,100)]
     public float Growth = 0;
     public float GrowthSpeedScale = 0.01f;
     public Vector3 AntScaleSize;
     public Vector3 MaxAntScaleSize;
+    public Vector3 CurrentPosition;
+    public Vector3 PreviousPosition;
 
     [Header("Attributes Setup")]
     [Range(0,2)]
@@ -48,6 +52,7 @@ public class Ants : MonoBehaviour
     public float SpawningEggsTime = 5f;
     public float RotateSpeed = 5f;
     public float AngleTT;
+    public float PreviousPosCheck = 5f;
     public int BirthPoint = 5;
     public int CurrentCondition = 5;
     public int CurrentFeeling = 5;
@@ -69,6 +74,9 @@ public class Ants : MonoBehaviour
     public bool isMovingObject = false;
     public bool isGoingBackHome = false;
     public bool isDoingDoubleChecker = false;
+    public bool isAssistingMovingobject = false;
+    public bool CheckPosition = false;
+  
     [ColorUsage(true)]
     public Color32 Indications;
     public string FoodTag = "Food";
@@ -83,6 +91,7 @@ public class Ants : MonoBehaviour
     public NavMeshAgent Agent707;
     public Coroutine WanderCo;
     public IEnumerator WanderIE;
+    //private Vector3 doubleCheckerDPos;
 
     #endregion
 
@@ -119,7 +128,8 @@ public class Ants : MonoBehaviour
 
             Nest.singleton.AssignAntInfos(this);
         }
-        
+
+        //doubleCheckerDPos = _doubleInteraction.transform.localPosition;
 
         HungerCapacityDefault = 100;
 
@@ -128,6 +138,8 @@ public class Ants : MonoBehaviour
         FoodDigestion(true);
 
         InvokeRepeating("CheckConditionAndFeeling", CheckConditionInTime / 2, CheckConditionInTime);
+
+        InvokeRepeating("ActivatePositionCheck", PreviousPosCheck, PreviousPosCheck);
 
         if (HungerCapacity < HungerRequirement)
         {
@@ -150,7 +162,7 @@ public class Ants : MonoBehaviour
     {
         if(CanWander)
         {
-            Debug.Log("Wander around the map");
+            Debug.Log(transform.name + "Wander around the map");
 
             InvokeRepeating("WanderRepeat", 0f, WanderRepeatInTime);
             
@@ -158,7 +170,7 @@ public class Ants : MonoBehaviour
         else
         {
 
-            Debug.Log("Cancelled Wander");
+            Debug.Log(transform.name + " Cancelled Wander");
 
             CancelInvoke("WanderRepeat");
 
@@ -171,6 +183,8 @@ public class Ants : MonoBehaviour
         if (Moving == true) return;
         else
         {
+            Agent707.speed = MovementSpeed;
+
             if (!isInNestZone && isQueen)
             {
                 Moving = true;
@@ -214,7 +228,9 @@ public class Ants : MonoBehaviour
     #region Smells for potential Food / Opponent
     void SmellForFood()
     {
-        //if (FoodisInRange) return;
+        if (FoodisInRange) return;
+
+        bool HaveDestination = false;
 
         Debug.Log(transform.name+" Searching for Food");
 
@@ -226,7 +242,10 @@ public class Ants : MonoBehaviour
 
         foreach (var food in Foods)
         {
-            //Debug.Log(food.gameObject.name);
+            if(food==null)
+            {
+                
+            }
 
             if (isHungry)
             {
@@ -238,21 +257,27 @@ public class Ants : MonoBehaviour
                     {
                         Debug.Log(food.name + " is being carried therefore /eat ");
                     }
+                    else if(food.GetComponent<Food>().FoodCapacity <= 0)
+                    {
+                        Debug.Log(food.name + " is Decayed no Food left!");
+                    }
                     else
                     {
-                        Debug.Log(" Is Hungry for " + food.name + " = " + isHungry);
+                        Debug.Log(transform.name+" Is Hungry for " + food.name + " = " + isHungry);
 
                         FoodList.Add(food.transform);
 
                         FoodisInRange = true;
 
-                        //MoveTowardsTargetedPosition(food.transform);
-                        MoveTowardsTargetedPosition(FoodList[Random.Range(0, FoodList.Count)].transform);
+                        HaveDestination = true;
+
+                        //MoveTowardsTargetedPosition(FoodList[Random.Range(0, FoodList.Count)].transform); // might need to move this out
                     }
                 }
-                else
+                else if(food.tag == FoodTag && !food.GetComponent<Food>().IsInNest)
                 {
-                    //Debug.Log("S");
+                    //May implement call for help ants in nest
+                    Debug.LogWarning(this.transform.name + " No Action here");
                 }
             }
             else if(isOnScoutMode)
@@ -265,29 +290,46 @@ public class Ants : MonoBehaviour
                     {
                         if(food.GetComponent<Food>().IsBeingCarried)
                         {
-                            Debug.Log(food.name + " is being carried therefore /maybe help carry? ");
+                            Debug.Log(transform.name + " - " +food.name + " is being carried therefore /maybe help carry? ");
+
+                            AssistMovingPO(food.transform);
 
                             isMovingObject = false;
                         }
+                        else if (food.GetComponent<Food>().FoodCapacity <= 0)
+                        {
+                            Debug.Log(food.name + " is Decayed no Food left!2");
+                        }
                         else
                         {
-                            Debug.Log(food.name + " is not in Nest = " + food.GetComponent<Food>().IsInNest);
+                            //Debug.Log(food.name + " is not in Nest = " + food.GetComponent<Food>().IsInNest);
 
                             FoodList.Add(food.transform);
 
                             FoodisInRange = true;
 
-                            //MoveTowardsTargetedPosition(food.transform);
-                            MoveTowardsTargetedPosition(FoodList[Random.Range(0, FoodList.Count)].transform);
+                            HaveDestination = true;
+
+                            //MoveTowardsTargetedPosition(FoodList[Random.Range(0, FoodList.Count)].transform); // might need to move this out
                         }
                     }
                     else
                     {
-                        Debug.Log(food.name + " is in Nest =" + food.GetComponent<Food>().IsInNest);
+                        //Debug.Log(food.name + " is in Nest =" + food.GetComponent<Food>().IsInNest);
                     }
                 }
             }
         }
+
+        if (HaveDestination)
+        {
+            MoveTowardsTargetedPosition(FoodList[Random.Range(0, FoodList.Count)].transform);
+        }
+        else
+        {
+            Debug.Log(transform.name + " have No Destination ");
+        }
+
     }
     #endregion
 
@@ -367,7 +409,25 @@ public class Ants : MonoBehaviour
     #region Fixed Update
     private void FixedUpdate()
     {
+        CurrentPosition = transform.position;
+
         GrowthSystem();
+
+        if (isAssistingMovingobject)
+        {
+            if (MainTarget == null)
+            {
+                Debug.Log(transform.name+ " No Object to move...nothing to do");
+
+                isAssistingMovingobject = false;
+
+            }
+            else
+            {
+                Debug.LogError(transform.name +"A - here may cause ant stop moving");
+                Agent707.SetDestination(MainTarget.position);
+            }
+        }
 
         if(Agent707.remainingDistance <= StoppingDistance)
         {
@@ -388,6 +448,40 @@ public class Ants : MonoBehaviour
                 Moving = false;
 
                 //Debug.Log("Reached Destination");
+                if (isAssistingMovingobject)
+                {
+                    if(MainTarget==null)
+                    {
+                        Debug.Log(transform.name + " No Object to move...nothing to do2");
+                    }
+                    else
+                    {
+                        if (Vector3.Distance(transform.position, MainTarget.position) > StoppingDistance)
+                        {
+                            Debug.Log(transform.name + " distance far from = " + MainTarget.name);
+                        }
+                        else
+                        {
+                            //Debug.Log(transform.name + " distance near from = " + MainTarget.name);
+
+                            if(MainTarget.GetComponent<Food>())
+                            {
+                                Food f = MainTarget.GetComponent<Food>();
+
+                                if(f.IsBeingCarried == false)
+                                {
+                                    Debug.Log(f.name + " is being placed on the ground");
+
+                                    isAssistingMovingobject = false;
+
+                                    CanWander = true;
+
+                                    Wander();
+                                }
+                            }
+                        }
+                    }
+                }
 
                 #region Check for the Distant of Nest between this Transform ant
                 if (Vector3.Distance(transform.position, HomeNest.position) > Nest.singleton.NestSize)
@@ -430,7 +524,14 @@ public class Ants : MonoBehaviour
         }
         else
         {
-            Agent707.speed = MovementSpeed;
+            if(isMovingObject)
+            {
+                Agent707.speed = 0.5f;
+            }
+            else
+            {
+                Agent707.speed = MovementSpeed;
+            }
 
             Indications = Color.green;
 
@@ -440,19 +541,39 @@ public class Ants : MonoBehaviour
             }
         }
 
-        if(isDoingDoubleChecker)
-        {
-            if(_doubleInteraction.localPosition.z >= 1)
-            {
+        //if(isDoingDoubleChecker)
+        //{
+        //    if(_doubleInteraction.localPosition.z >= 1)
+        //    {
+        //        _doubleInteraction.localPosition = doubleCheckerDPos;
+        //    }
+        //    else
+        //    {
+        //        _doubleInteraction.Translate(0, 0, DC_movementSpeed*Time.deltaTime, Space.Self);
+        //    }
 
-            }
-            else
-            {
-                _doubleInteraction.Translate(0, 0, DC_movementSpeed*Time.deltaTime, Space.Self);
-            }
-            
-        }
+        //}
+        
     }
+    #endregion
+
+    #region Unit Stuck Sector
+    void ActivatePositionCheck()
+    {
+        CheckPosition = true;
+        
+        StartCoroutine(PositionCheck());
+
+    }
+
+    private IEnumerator PositionCheck()
+    {
+        yield return new WaitForSeconds(PreviousPosCheck);
+
+
+        CheckPosition = false;
+    }
+
     #endregion
 
     #region Rotation - Transform Corrections
@@ -470,7 +591,7 @@ public class Ants : MonoBehaviour
     {
         if(ObjectsInteracted.Count==0 || ObjectsInteracted==null)
         {
-            //Debug.Log("Interact Nothing");
+            //Debug.Log("Interact Nothing - CI");
 
             return;
         }
@@ -487,19 +608,25 @@ public class Ants : MonoBehaviour
                 {
                     if (o.tag == FoodTag && isHungry)
                     {
+                        Food f = o.GetComponent<Food>();
+
                         if (isFeeding == false)
                         {
                             isFeeding = true;
 
-                            Debug.Log("Interact with = " + o.gameObject.name);
+                            Debug.Log("Interact with = " + f.gameObject.name);
 
                             ActivateFeedingMechanism(true);
                             //FoodPlatformManagement(o.gameObject.transform);
                         }
+                        else
+                        {
+                            Debug.LogWarning(transform.name + " Do nothing");
+                        }
                     }
                     else
                     {
-                        Debug.Log("Do nothing");
+                        Debug.LogWarning(transform.name + " Do nothing");
                     }
                 }
 //------------------------------------------------------------------------------------------------------
@@ -509,14 +636,24 @@ public class Ants : MonoBehaviour
                     {
                         Food f = o.GetComponent<Food>();
 
-                        if (o.tag == FoodTag)
+                        if (f.IsBeingCarried) return;
+
+                        if (f.tag == FoodTag)
                         {
                             if (isMovingObject == false)
                             {
-                                Debug.Log("Processing to Move Object = " + o.name);
+                                Debug.Log(transform.name + " Processing to Move Object = " + f.name);
 
-                                ActivateMovingObjectMechanicsm(o);
+                                ActivateMovingObjectMechanicsm(f.transform);
                             }
+                            else
+                            {
+                                Debug.LogWarning(transform.name + " Do nothing");
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogWarning(transform.name + " Do nothing");
                         }
                     }
                 }
@@ -536,6 +673,8 @@ public class Ants : MonoBehaviour
             {
                 Food.IsBeingCarried = true;
 
+                Agent707.speed = 0.5f;
+
                 isMovingObject = true;
 
                 CanWander = false;
@@ -545,6 +684,8 @@ public class Ants : MonoBehaviour
                 FoodisInRange = false;
 
                 isOnScoutMode = false;
+
+                isAssistingMovingobject = false;
 
                 PotentialObject.position = InteractionPoint.position;
 
@@ -581,6 +722,8 @@ public class Ants : MonoBehaviour
 
             isMovingObject = false;
 
+            Agent707.speed = MovementSpeed;
+
             CanWander = true;
 
             Wander();
@@ -589,7 +732,25 @@ public class Ants : MonoBehaviour
 
     #endregion
 
-    #region 
+    #region Assit Shift and Place Potential Object
+    void AssistMovingPO(Transform _PO)
+    {
+        isAssistingMovingobject = true;
+
+        MainTarget = _PO;
+
+        CanWander = false;
+
+        Wander();// check here for FoodIsInrange
+
+        //Debug.Log(this.transform.name + " is assiting moving PO");
+        FoodisInRange = false;
+
+        Agent707.SetDestination(_PO.position);
+    }
+    #endregion
+
+    #region Travel Home
     void TravelBackToNest()
     {
         isGoingBackHome = true;
@@ -678,9 +839,13 @@ public class Ants : MonoBehaviour
         {
             isInNestZone = true;
         }
-        else
+        else if (Markus.gameObject.tag == "Food")
         {
             ObjectsInteracted.Add(Markus.transform);
+        }
+        else
+        {
+            
         }
     }
 
@@ -690,9 +855,13 @@ public class Ants : MonoBehaviour
         {
             isInNestZone = false;
         }
-        else
+        else if (Celine.gameObject.tag == "Food")
         {
             ObjectsInteracted.Remove(Celine.transform);
+        }
+        else
+        {
+            
         }
     }
     #endregion
@@ -701,7 +870,7 @@ public class Ants : MonoBehaviour
     void FoodDigestion(bool BeginDigestion)
     {
         isDigestingFood = BeginDigestion;
-        Debug.Log("Digesting Food = "+BeginDigestion);
+        Debug.Log(transform.name + "Digesting Food = "+BeginDigestion);
 
         if(BeginDigestion)
         {
@@ -717,7 +886,11 @@ public class Ants : MonoBehaviour
     {
         HungerCapacity -= HungerCrement;
 
-        if(isOnScoutMode)
+        if(isAssistingMovingobject)
+        {
+            //Debug.Log(this.transform.name + " Still moving Potential Object");
+        }
+        else if(isOnScoutMode)
         {
             Debug.Log(transform.name +" Scout - Searching for Potential..");
 
@@ -767,5 +940,60 @@ public class Ants : MonoBehaviour
     void DoubleChecker(bool _dc)
     {
         isDoingDoubleChecker = _dc;
+
+        if (ObjectsInteracted.Count == 0 || ObjectsInteracted == null)
+        {
+            Debug.Log("Interact Nothing");
+
+            if (isFeeding)
+            {
+                Debug.Log("Might need to disable feeding");
+
+                ActivateFeedingMechanism(false);
+
+            }
+        }
+        else
+        {
+            if (ObjectsInteracted.Count == 0 || ObjectsInteracted == null)
+            {
+                Debug.Log("Interact Nothing");
+
+                return;
+            }
+
+            foreach (Transform o in ObjectsInteracted)
+            {
+                if (o == null)
+                {
+                    ObjectsInteracted.Remove(o);
+                }
+                else
+                {
+                    if (isHungry)
+                    {
+                        if (o.tag == FoodTag)
+                        {
+                            if(o.GetComponent<Food>().FoodCapacity <= 0)
+                            {
+                                Debug.Log("Deactivate Feeding");
+
+                                ActivateFeedingMechanism(false);
+                            }
+                            else
+                            {
+                                //Debug.Log("Consuming Food");
+
+                                o.GetComponent<Food>().ConsumingFood(1);
+                            }
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
     }
 }

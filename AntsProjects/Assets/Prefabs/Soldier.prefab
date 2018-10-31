@@ -540,12 +540,16 @@ MonoBehaviour:
   Rank: 
   isQueen: 0
   isSoldier: 1
+  isGuardian: 0
   Growth: 0
   GrowthSpeedScale: 0.001
   AntScaleSize: {x: 0, y: 0, z: 0}
   MaxAntScaleSize: {x: 0.8, y: 0.8, z: 0.8}
+  CurrentPosition: {x: 0, y: 0, z: 0}
+  PreviousPosition: {x: 0, y: 0, z: 0}
   StoppingDistance: 0.8
   MovementSpeed: 3
+  DC_movementSpeed: 0.5
   HungerRequirement: 50
   HungerCapacity: 55
   HungerSpeedTime: 3
@@ -558,6 +562,7 @@ MonoBehaviour:
   SpawningEggsTime: 0
   RotateSpeed: 5
   AngleTT: 0
+  PreviousPosCheck: 5
   BirthPoint: 10
   CurrentCondition: 5
   CurrentFeeling: 5
@@ -577,6 +582,8 @@ MonoBehaviour:
   isMovingObject: 0
   isGoingBackHome: 0
   isDoingDoubleChecker: 1
+  isAssistingMovingobject: 0
+  CheckPosition: 0
   Indications:
     serializedVersion: 2
     rgba: 0

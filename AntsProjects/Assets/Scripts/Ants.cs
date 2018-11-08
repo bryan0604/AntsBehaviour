@@ -126,7 +126,7 @@ public class Ants : MonoBehaviour
         {
             HomeNest = Nest.singleton.transform;
 
-            Nest.singleton.AssignAntInfos(this);
+            //Nest.singleton.AssignAntInfos(this);
         }
 
         //doubleCheckerDPos = _doubleInteraction.transform.localPosition;
@@ -162,7 +162,7 @@ public class Ants : MonoBehaviour
     {
         if(CanWander)
         {
-            Debug.Log(transform.name + "Wander around the map");
+            Debug.Log(transform.name +  " Wander around the map");
 
             InvokeRepeating("WanderRepeat", 0f, WanderRepeatInTime);
             
@@ -722,6 +722,8 @@ public class Ants : MonoBehaviour
 
             isMovingObject = false;
 
+            Moving = false;
+
             Agent707.speed = MovementSpeed;
 
             CanWander = true;
@@ -746,6 +748,8 @@ public class Ants : MonoBehaviour
         //Debug.Log(this.transform.name + " is assiting moving PO");
         FoodisInRange = false;
 
+        Moving = true;
+
         Agent707.SetDestination(_PO.position);
     }
     #endregion
@@ -754,6 +758,8 @@ public class Ants : MonoBehaviour
     void TravelBackToNest()
     {
         isGoingBackHome = true;
+
+        Moving = true;
 
         var X = Nest.singleton.X;
         //var Y = 0f;
@@ -870,7 +876,7 @@ public class Ants : MonoBehaviour
     void FoodDigestion(bool BeginDigestion)
     {
         isDigestingFood = BeginDigestion;
-        Debug.Log(transform.name + "Digesting Food = "+BeginDigestion);
+        Debug.Log(transform.name + " Digesting Food = "+BeginDigestion);
 
         if(BeginDigestion)
         {

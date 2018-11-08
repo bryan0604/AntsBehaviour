@@ -37,8 +37,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1886406192267798}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.0126386, y: 0.572, z: 6.56}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 2.39, y: 0.32, z: 0.21}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -108,9 +108,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad4fa28878d1d9441aa2de8026e8b106, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FoodCapacity: 30
+  smoothSpeed: 6
+  FoodCapacity: 60
+  ActivateVacuum: 0
   IsInNest: 0
   IsBeingCarried: 0
+  isSetOnCarriedPosition: 0
+  isBeingPlaced: 0
+  isDepeleted: 0
   VoidFoodDecay: FoodDecay
   myMats: {fileID: 0}
   decaymats: {fileID: 2100000, guid: ff592517411beb64b89fc4440016517a, type: 2}
+  Ant: {fileID: 0}
+  MainCarryAnt: {fileID: 0}
+  offset: {x: 0, y: 0, z: 0}

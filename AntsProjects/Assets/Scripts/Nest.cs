@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Nest : MonoBehaviour
 {
-    public List<Ants> Anntts;
+    public List<AntsIntermediate> Anntts;
 
     public static Nest singleton;
     public float NestSize;
@@ -20,6 +20,8 @@ public class Nest : MonoBehaviour
         X = transform.localScale.x/2;
         Y = transform.localScale.y/2;
         Z = transform.localScale.z/2;
+
+        NestCheck();
 	}
 
     public void NestCheck()
@@ -44,7 +46,7 @@ public class Nest : MonoBehaviour
         }
     }
 
-    public void AssignAntInfos(Ants ant)
+    public void AssignAntInfos(AntsIntermediate ant)
     {
         Anntts.Add(ant);
 

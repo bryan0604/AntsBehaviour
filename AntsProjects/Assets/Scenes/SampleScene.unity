@@ -378,11 +378,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 114016627490706420, guid: 9ca121c42b9f9604fb85063bbf635404,
-        type: 2}
-      propertyPath: FoodCapacity
-      value: 60
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9ca121c42b9f9604fb85063bbf635404, type: 2}
   m_IsPrefabAsset: 0

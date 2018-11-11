@@ -10,8 +10,6 @@ using UnityEngine.AI;
 // 6. if no food, continue wander
 #endregion
 
-
-
 public class AntsIntermediate : MonoBehaviour
 {
     #region Variables
@@ -52,6 +50,7 @@ public class AntsIntermediate : MonoBehaviour
     public Transform InteractionPoint;
     public Transform CarryPoint;
     public Transform MainTarget;
+    public Transform Selectioncircle;
     #endregion
 
     #region Start
@@ -69,7 +68,7 @@ public class AntsIntermediate : MonoBehaviour
 
         NestManager.AssignAntInfos(this);
 
-        Wander();
+        Invoke("Wander", 0.2f);
 
         InvokeRepeating("Digestion", StomachDigestTime, StomachDigestTime);
 
@@ -166,15 +165,36 @@ public class AntsIntermediate : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            #region  Cursor Movement
+            //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            //RaycastHit hit;
+
+            //if (Physics.Raycast(ray, out hit))
+            //{
+            //    Agent260.SetDestination(hit.point);
+            //}
+            //Agent260.SetDestination(Pos);
+            #endregion
+
+            #region Selection Circle
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit))
             {
-                Agent260.SetDestination(hit.point);
+                Vector3 _scales = new Vector3(transform.localScale.x*2, 0.01f, transform.localScale.z*2);
+
+                GameObject _SelectionCircle = Instantiate(Selectioncircle.gameObject, hit.point, Quaternion.identity);
+
+                _SelectionCircle.transform.localScale = _scales;
+
+                _SelectionCircle.GetComponent<SelectionCircle>().ImBelongTo = transform;
+
             }
-            //Agent260.SetDestination(Pos);
+            #endregion
+
         }
 
         if (Agent260.remainingDistance < StopDistance)
@@ -682,9 +702,8 @@ public class AntsIntermediate : MonoBehaviour
 
         Vector3 V = new Vector3(transform.position.x + AreaX, 0.1f, transform.position.z + AreaZ);
 
-        //draw physics
         bool AbleToMove = true;
-        Collider[] ListObjects = Physics.OverlapSphere(V, 0.3f);
+        Collider[] ListObjects = Physics.OverlapSphere(V, transform.localScale.z);
 
         foreach (var i in ListObjects)
         {
@@ -698,15 +717,21 @@ public class AntsIntermediate : MonoBehaviour
             }
         }
 
-
-
         if(AbleToMove)
         {
             Agent260.SetDestination(V);
 
             MovementSpeedManagement(true, 0);
 
-            Debug.DrawLine(transform.position, V, Color.cyan, 5f);
+            //Debug.DrawLine(transform.position, V, Color.cyan, 5f);
+
+            Vector3 _scales = new Vector3(transform.localScale.x * 2, 0.01f, transform.localScale.z * 2);
+
+            GameObject _SelectionCircle = Instantiate(Selectioncircle.gameObject, V, Quaternion.identity);
+
+            _SelectionCircle.transform.localScale = _scales;
+
+            _SelectionCircle.GetComponent<SelectionCircle>().ImBelongTo = transform;
         }
         else
         {

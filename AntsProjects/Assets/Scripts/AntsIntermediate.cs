@@ -28,6 +28,7 @@ public class AntsIntermediate : MonoBehaviour
     private float _Feeding;
     public NavMeshAgent Agent260;
     public Nest NestManager;
+    public FoodManager FoodManagerScript;
 
     public bool isIdling;
     public bool isWandering;
@@ -57,6 +58,8 @@ public class AntsIntermediate : MonoBehaviour
     void Start ()
     {
         if (TestMode) return;
+
+        FoodManagerScript = FoodManager.singleton;
 
         _DoingNothing = Time_DoingNothing;
 
@@ -197,21 +200,28 @@ public class AntsIntermediate : MonoBehaviour
 
         }
 
-        if (Agent260.remainingDistance < StopDistance)
+        if (Agent260.hasPath)
         {
-            if (isWandering)
+            if (Agent260.remainingDistance < StopDistance)
             {
-                Idle();
-            }
+                if (isWandering)
+                {
+                    Idle();
+                }
 
-            if (isCarryingAnObject)
+                if (isCarryingAnObject)
+                {
+                    PlaceItem();
+                }
+            }
+            else
             {
-                PlaceItem();
+
             }
         }
         else
         {
-
+            //Debu/*g*/.Log("/*Stucked*/");
         }
 
         // this make wander and idle connections
@@ -411,23 +421,15 @@ public class AntsIntermediate : MonoBehaviour
 
         Food f = MainTarget.GetComponent<Food>();
 
-        f.IsBeingCarried = false;
+        f.OnBeingPlacedToTheGround();
 
-        f.ActivateVacuum = false;
-
-        f.Ant = null;
-
-        f.isSetOnCarriedPosition = false;
-
-        f.isBeingPlaced = true;
+        FoodManagerScript.FoodCheck();
 
         OffMainTargetManager = true;
 
         MainTarget = null;
 
         Agent260.avoidancePriority = 50;
-
-        NestManager.NestCheck();
 
         Debug.Log(transform.name + " placing Item");
 
@@ -574,7 +576,9 @@ public class AntsIntermediate : MonoBehaviour
         }
         else
         {
+            Debug.Log(transform.name + " no food found!");
 
+            Wander();
         }
     }
     #endregion

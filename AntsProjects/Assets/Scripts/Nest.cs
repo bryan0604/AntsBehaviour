@@ -26,24 +26,9 @@ public class Nest : MonoBehaviour
 
     public void NestCheck()
     {
-        Collider[] ObjectInCollide = Physics.OverlapSphere(transform.position, NestSize);
+        //Collider[] ObjectInCollide = Physics.OverlapSphere(transform.position, NestSize);
 
-        for (int i = 0; i < ObjectInCollide.Length; i++)
-        {
-            //Debug.Log(ObjectInCollide[i].name);
-            if (ObjectInCollide[i].gameObject.tag == "Ants")
-            {
-                //Ants Ant = ObjectInCollide[i].GetComponent<Ants>();
 
-                //Ant.isInNestZone = true;
-            }
-            else if(ObjectInCollide[i].gameObject.tag == "Food")
-            {
-                Food Foodie = ObjectInCollide[i].GetComponent<Food>();
-
-                Foodie.IsInNest = true;
-            }
-        }
     }
 
     public void AssignAntInfos(AntsIntermediate ant)

@@ -334,7 +334,7 @@ MonoBehaviour:
   StomachRequirement: 95
   StomachCrement: 2
   StomachDigestTime: 2
-  StopDistance: 0.01
+  StopDistance: 0.1
   MovementSpeed: 1
   WanderRange: 3
   DetectRange: 6

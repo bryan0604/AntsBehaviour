@@ -30,11 +30,6 @@ public class Food : MonoBehaviour
         myMats = GetComponent<Material>();
     }
 
-    private void OnTransformParentChanged()
-    {
-        Nest.singleton.NestCheck();
-    }
-
     private void FixedUpdate()
     {
         if(Input.GetKey(KeyCode.UpArrow))
@@ -67,6 +62,25 @@ public class Food : MonoBehaviour
         }
     }
 
+    public void FoodCheck()
+    {
+        Collider[] col = Physics.OverlapSphere(transform.position, transform.localScale.z);
+
+        foreach (var i in col)
+        {
+            if(i.GetComponent<Nest>())
+            {
+                IsInNest = true;
+            }
+            else
+            {
+                IsInNest = false;
+
+                isBeingPlaced = false;
+            }
+        }
+    }
+
     public void ConsumingFood(int _Quantity)
     {
         FoodCapacity -= _Quantity;
@@ -79,20 +93,10 @@ public class Food : MonoBehaviour
 
             isDepeleted = true;
 
-            //GetComponent<BoxCollider>().enabled = false;
-
-            //Destroy food to smaller pieces? for reproduction?
-
-            //Destroy(this);
-
             Invoke(VoidFoodDecay, 5f);
         }
-        else
-        {
-
-        }   
     }
-     
+
     void FoodDecay()
     {
         Destroy(gameObject);
@@ -103,5 +107,18 @@ public class Food : MonoBehaviour
         Ant = ant;
 
         ActivateVacuum = true;
+    }
+
+    public void OnBeingPlacedToTheGround()
+    {
+        IsBeingCarried = false;
+
+        ActivateVacuum = false;
+
+        Ant = null;
+
+        isSetOnCarriedPosition = false;
+
+        isBeingPlaced = true;
     }
 }

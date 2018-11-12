@@ -5,12 +5,26 @@ using UnityEngine;
 public class korbryan : MonoBehaviour
 {
 
-    //private void Start()
-    //{
-    //    InvokeRepeating("Fart", 1f,
-    //}
+    private void FixedUpdate()
+    {
+        if(Input.GetKeyDown(KeyCode.A))
+        {
+            Fart();
+        }
+
+        if(Input.GetKeyDown(KeyCode.B))
+        {
+            Shit();
+        }
+    }
+
     void Fart()
     {
+        Debug.Log(transform.name + " is farting...");
+    }
 
+    void Shit()
+    {
+        Debug.Log(transform.name + " is shitting...");
     }
 }

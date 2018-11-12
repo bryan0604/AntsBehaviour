@@ -28,6 +28,8 @@ public class Food : MonoBehaviour
     private void Start()
     {
         myMats = GetComponent<Material>();
+
+        FoodCheck();
     }
 
     private void FixedUpdate()
@@ -71,12 +73,14 @@ public class Food : MonoBehaviour
             if(i.GetComponent<Nest>())
             {
                 IsInNest = true;
+
+                return;
             }
             else
             {
                 IsInNest = false;
 
-                isBeingPlaced = false;
+                //isBeingPlaced = false;
             }
         }
     }

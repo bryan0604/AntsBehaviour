@@ -336,12 +336,13 @@ MonoBehaviour:
   StomachDigestTime: 2
   StopDistance: 0.1
   MovementSpeed: 1
-  WanderRange: 3
+  WanderRange: 2
   DetectRange: 6
   Time_DoingNothing: 5
   Time_Feeding: 0.1
   Agent260: {fileID: 195368577133448172}
   NestManager: {fileID: 0}
+  FoodManagerScript: {fileID: 0}
   isIdling: 0
   isWandering: 0
   isAbleToDoNextTask: 0

@@ -28,7 +28,6 @@ public class AntsIntermediate : MonoBehaviour
     private float _Feeding;
     public NavMeshAgent Agent260;
     public Nest NestManager;
-    public FoodManager FoodManagerScript;
 
     public bool isIdling;
     public bool isWandering;
@@ -58,8 +57,6 @@ public class AntsIntermediate : MonoBehaviour
     void Start ()
     {
         if (TestMode) return;
-
-        FoodManagerScript = FoodManager.singleton;
 
         _DoingNothing = Time_DoingNothing;
 
@@ -206,6 +203,7 @@ public class AntsIntermediate : MonoBehaviour
             {
                 if (isWandering)
                 {
+                    Debug.Log("B");
                     Idle();
                 }
 
@@ -423,7 +421,7 @@ public class AntsIntermediate : MonoBehaviour
 
         f.OnBeingPlacedToTheGround();
 
-        FoodManagerScript.FoodCheck();
+        f.FoodCheck();
 
         OffMainTargetManager = true;
 
@@ -692,11 +690,7 @@ public class AntsIntermediate : MonoBehaviour
     #region Wander System
     void Wander() // Do 1 && Note may cast a small area to check if point is clear to move to
     {
-        Debug.Log(transform.name + " is Wandering");
-
-        isWandering = true;
-
-        isAbleToDoNextTask = false;
+        Agent260.ResetPath();
 
         float AreaX, AreaZ;
 
@@ -723,7 +717,13 @@ public class AntsIntermediate : MonoBehaviour
 
         if(AbleToMove)
         {
+            Debug.Log(transform.name + " is Wandering");
+
             Agent260.SetDestination(V);
+
+            isWandering = true;
+
+            isAbleToDoNextTask = false;
 
             MovementSpeedManagement(true, 0);
 
@@ -739,6 +739,7 @@ public class AntsIntermediate : MonoBehaviour
         }
         else
         {
+            Debug.Log(transform.name + " is not able to Wandering");
             Debug.DrawLine(transform.position, V, Color.red, 5f);
 
             Invoke("Wander", 0.1f);

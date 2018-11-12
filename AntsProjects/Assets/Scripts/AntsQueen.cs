@@ -5,6 +5,8 @@ using UnityEngine.AI;
 
 #region Works
 //1. Queen wander only in nest
+//2. Feeding Mechanics
+//3. Step after Feeding
 #endregion
 
 public class AntsQueen : MonoBehaviour
@@ -32,10 +34,12 @@ public class AntsQueen : MonoBehaviour
     public bool isWandering;
     public bool isMoving;
     public bool isInteracting;
+    public bool isHeadingToFood;
 
     public Transform SelectionCircle;
     public Transform InteractionPoint;
     public Transform LayEggPoint;
+    public Transform MainTarget;
 
     public NavMeshAgent QueenWanda;
 
@@ -55,14 +59,11 @@ public class AntsQueen : MonoBehaviour
         {
             if (QueenWanda.remainingDistance < StopDistance)
             {
+                QueenWanda.ResetPath();
+
                 if (isWandering)
                 {
                     StartCoroutine(Idle());
-                }
-
-                if(isHungry)
-                {                  
-                    Interaction();
                 }
             }
         }
@@ -71,6 +72,10 @@ public class AntsQueen : MonoBehaviour
 
     void Interaction()
     {
+        Debug.Log(transform.name + " checking Interaction");
+
+        Movement(false);
+
         if(!isInteracting)
         {
             isInteracting = true;
@@ -79,8 +84,6 @@ public class AntsQueen : MonoBehaviour
         {
             return;
         }
-
-        Debug.Log(transform.name + " checking Interaction");
     }
 
     private IEnumerator Idle()
@@ -152,7 +155,13 @@ public class AntsQueen : MonoBehaviour
             {
                 Movement(true);
 
-                QueenWanda.SetDestination(AvailableFoods[Random.Range(0, AvailableFoods.Count)].transform.position);
+                isHeadingToFood = FoodisFound;
+
+                Transform ChosenOne = AvailableFoods[Random.Range(0, AvailableFoods.Count)].transform;
+
+                MainTarget = ChosenOne;
+
+                QueenWanda.SetDestination(MainTarget.position);
             }
         }
         else
@@ -242,4 +251,14 @@ public class AntsQueen : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider o)
+    {
+        if(o.transform == MainTarget)
+        {
+            if (isHeadingToFood)
+            {
+                Interaction();
+            }
+        }
+    }
 }

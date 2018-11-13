@@ -5,8 +5,6 @@ using UnityEngine.AI;
 
 #region Works
 //1. Queen wander only in nest
-//2. Feeding Mechanics
-//3. Step after Feeding
 #endregion
 
 public class AntsQueen : MonoBehaviour
@@ -21,7 +19,13 @@ public class AntsQueen : MonoBehaviour
     public float DigestionTime;
     public float DigestAmount;
     public float SmellFoodRange;
+    public float FeedIntervalTime;
+    public float FeedAmount;
+    public float BirthIntervals;
+    public float BirthChannelingTime;
 
+    private float _BirthChannel;
+    private float _FeedInterval;
     private float _IdleTime;
 
     public int BirthCondition;
@@ -35,6 +39,7 @@ public class AntsQueen : MonoBehaviour
     public bool isMoving;
     public bool isInteracting;
     public bool isHeadingToFood;
+    public bool isGivingBirth;
 
     public Transform SelectionCircle;
     public Transform InteractionPoint;
@@ -47,10 +52,41 @@ public class AntsQueen : MonoBehaviour
     {
         QueenWanda.speed = MovementSpeed;
         _IdleTime = IdleTime;
+        _FeedInterval = FeedIntervalTime;
+        _BirthChannel = BirthChannelingTime;
 
         Invoke("Wander", 1f);
 
-        InvokeRepeating("Digestion", DigestionTime, DigestAmount);
+        InvokeRepeating("Digestion", DigestionTime, DigestionTime);
+
+        InvokeRepeating("Birth", BirthIntervals, BirthIntervals);
+    }
+
+    void Birth()
+    {
+        if(isHungry)
+        {
+            BirthCondition += BirthIncrement;
+
+            if(BirthCondition >= 100)
+            {
+                GiveBirth();
+            }
+        }
+    }
+
+    void GiveBirth()
+    {
+        Debug.Log(transform.name + " Processing Giving Birth");
+
+        isGivingBirth = true;
+
+        if (isFeeding)
+        {
+            CancelFeedInfo();
+        }
+
+        CancelInvoke("Digestion");
     }
 
     private void FixedUpdate()
@@ -67,7 +103,52 @@ public class AntsQueen : MonoBehaviour
                 }
             }
         }
+
+        if(isFeeding)
+        {
+            _FeedInterval -= Time.deltaTime;
+
+            if(_FeedInterval <= 0)
+            {
+                StomachCapacity += FeedAmount;
+
+                _FeedInterval = FeedIntervalTime;
+
+                Debug.Log(transform.name + " stomach = " + StomachCapacity);
+
+                if(StomachCapacity >= 100)
+                {
+                    CancelFeedInfo();
+
+                    Debug.Log(transform.name + " is full " + StomachCapacity);
+
+                    InvokeRepeating("Digestion", DigestionTime, DigestionTime);
+
+                    StartCoroutine(Idle());
+                }
+            }
+        }
         
+        if(isGivingBirth)
+        {
+            _BirthChannel -= Time.deltaTime;
+
+            if(BirthChannelingTime <= 0)
+            {
+
+            }
+        }
+    }
+
+    void CancelFeedInfo()
+    {
+        isFeeding = false;
+
+        isHungry = false;
+
+        isInteracting = false;
+
+        isHeadingToFood = false;
     }
 
     void Interaction()
@@ -79,11 +160,23 @@ public class AntsQueen : MonoBehaviour
         if(!isInteracting)
         {
             isInteracting = true;
+
+            if(isHungry)
+            {
+                Feeding();
+            }
         }
         else
         {
             return;
         }
+    }
+
+    void Feeding()
+    {
+        isFeeding = true;
+
+        CancelInvoke("Digestion");
     }
 
     private IEnumerator Idle()

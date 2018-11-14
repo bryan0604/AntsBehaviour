@@ -23,7 +23,7 @@ public class AntsIntermediate : MonoBehaviour
     public float DetectRange=6f;
     public float Time_DoingNothing=5f;
     public float Time_Feeding = 2f;
-    private float _StopDistance;
+    //private float _StopDistance;
     private float _DoingNothing;
     private float _Feeding;
     public NavMeshAgent Agent260;
@@ -62,7 +62,7 @@ public class AntsIntermediate : MonoBehaviour
 
         _Feeding = Time_Feeding;
 
-        _StopDistance = StopDistance;
+        //_StopDistance = StopDistance;
 
         Agent260.speed = MovementSpeed;
 

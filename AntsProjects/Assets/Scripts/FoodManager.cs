@@ -33,7 +33,7 @@ public class FoodManager : MonoBehaviour
 
         Debug.DrawLine(transform.position, new Vector3(transform.position.x + RandomX, transform.position.y ,transform.position.z + RandomZ),Color.red,5f );
 
-        GameObject Food = Instantiate(FoodPrefab.gameObject, new Vector3(transform.position.x + RandomX, transform.position.y, transform.position.z + RandomZ),Quaternion.identity);
+        Instantiate(FoodPrefab.gameObject, new Vector3(transform.position.x + RandomX, transform.position.y, transform.position.z + RandomZ),Quaternion.identity);
     }
 
     private void OnDrawGizmosSelected()

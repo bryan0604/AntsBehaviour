@@ -5,6 +5,8 @@ using UnityEngine.AI;
 
 #region Works
 //1. Queen wander only in nest
+//2. Steps after gave birth.
+//3. Move the egg backwards few length then activate hatching
 #endregion
 
 public class AntsQueen : MonoBehaviour
@@ -26,7 +28,7 @@ public class AntsQueen : MonoBehaviour
 
     private float _BirthChannel;
     private float _FeedInterval;
-    private float _IdleTime;
+    //private float _IdleTime;
 
     public int BirthCondition;
     public int BirthIncrement;
@@ -51,7 +53,7 @@ public class AntsQueen : MonoBehaviour
     private void Start()
     {
         QueenWanda.speed = MovementSpeed;
-        _IdleTime = IdleTime;
+        //_IdleTime = IdleTime;
         _FeedInterval = FeedIntervalTime;
         _BirthChannel = BirthChannelingTime;
 
@@ -66,17 +68,23 @@ public class AntsQueen : MonoBehaviour
     {
         if(isHungry)
         {
+            BirthCondition -= BirthIncrement;
+        }
+        else
+        {
             BirthCondition += BirthIncrement;
+        }
 
-            if(BirthCondition >= 100)
-            {
-                GiveBirth();
-            }
+        if (BirthCondition >= 100)
+        {
+            GiveBirth();
         }
     }
 
     void GiveBirth()
     {
+        if (isGivingBirth) return;
+
         Debug.Log(transform.name + " Processing Giving Birth");
 
         isGivingBirth = true;
@@ -86,6 +94,7 @@ public class AntsQueen : MonoBehaviour
             CancelFeedInfo();
         }
 
+        CancelInvoke("Birth");
         CancelInvoke("Digestion");
     }
 
@@ -97,7 +106,7 @@ public class AntsQueen : MonoBehaviour
             {
                 QueenWanda.ResetPath();
 
-                if (isWandering)
+                if (isWandering && !isGivingBirth)
                 {
                     StartCoroutine(Idle());
                 }
@@ -133,9 +142,21 @@ public class AntsQueen : MonoBehaviour
         {
             _BirthChannel -= Time.deltaTime;
 
-            if(BirthChannelingTime <= 0)
+            if(_BirthChannel <= 0)
             {
+                Debug.Log(transform.name + " Birth!");
 
+                _BirthChannel = BirthChannelingTime;
+
+                BirthCondition = 0;
+
+                isGivingBirth = false;
+
+                InvokeRepeating("Digestion", DigestionTime, DigestionTime);
+
+                StartCoroutine(Idle());
+
+                return;
             }
         }
     }
@@ -196,6 +217,8 @@ public class AntsQueen : MonoBehaviour
 
     void Condition()
     {
+        if (isGivingBirth) return;
+
         Debug.Log(transform.name + " is checking condition");
 
         if (isHungry)
@@ -211,7 +234,6 @@ public class AntsQueen : MonoBehaviour
             Wander();
         }
     }
-
 
     void LookForFood()
     {
@@ -269,15 +291,19 @@ public class AntsQueen : MonoBehaviour
     {
         Debug.Log(transform.name + " is wandering");
 
-        float AreaX, AreaZ;
+        float X, Z, RandomX, RandomZ;
 
-        AreaX = Random.Range(-(WanderRange), (WanderRange));
+        X = Nest.singleton.NestSize / 2;
+        Z = Nest.singleton.NestSize / 2;
 
-        AreaZ = Random.Range(-(WanderRange), (WanderRange));
+        RandomX = Random.Range(-X, X);
+        RandomZ = Random.Range(-Z, Z);
 
-        Vector3 V = new Vector3(transform.position.x + AreaX, 0.1f, transform.position.z + AreaZ);
+        Vector3 TargetPoint = new Vector3(RandomX, 0.1f, RandomZ);
 
-        Collider[] WullyWollys = Physics.OverlapSphere(V , transform.localScale.z);
+        TargetPoint = Nest.singleton.transform.TransformPoint(TargetPoint / 2f);
+
+        Collider[] WullyWollys = Physics.OverlapSphere(TargetPoint , transform.localScale.z);
 
         bool isAbleToMove = true;
 
@@ -299,19 +325,19 @@ public class AntsQueen : MonoBehaviour
 
             Vector3 scales = new Vector3(transform.localScale.x * 2, 0.01f, transform.localScale.z * 2);
 
-            GameObject _SelectionCircle = Instantiate(SelectionCircle.gameObject, V, Quaternion.identity);
+            GameObject _SelectionCircle = Instantiate(SelectionCircle.gameObject, TargetPoint, Quaternion.identity);
 
             _SelectionCircle.transform.localScale = scales;
 
             _SelectionCircle.GetComponent<SelectionCircle>().ImBelongTo = transform;
 
-            QueenWanda.SetDestination(V);
+            QueenWanda.SetDestination(TargetPoint);
 
             isWandering = true;
         }
         else
         {
-            Debug.DrawLine(transform.position, V, Color.red, 1f);
+            Debug.DrawLine(transform.position, TargetPoint, Color.red, 1f);
 
             Invoke("Wander", 0.1f);
         }

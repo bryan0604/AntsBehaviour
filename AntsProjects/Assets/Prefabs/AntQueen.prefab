@@ -199,8 +199,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1288741410632978}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.56, y: 0.25024, z: -0.64767325}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.11499983, y: -0.08375999, z: 0.2693268}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children:
   - {fileID: 4475456953057980}
@@ -480,8 +480,13 @@ MonoBehaviour:
   MovementSpeed: 0.5
   StomachCapacity: 100
   StomachHungryRange: 90
-  DigestionTime: 1
-  DigestAmount: 0
+  DigestionTime: 10
+  DigestAmount: 2
+  SmellFoodRange: 10
+  FeedIntervalTime: 0.5
+  FeedAmount: 2
+  BirthIntervals: 5
+  BirthChannelingTime: 5
   BirthCondition: 0
   BirthIncrement: 10
   isHungry: 0
@@ -490,8 +495,14 @@ MonoBehaviour:
   isInNest: 0
   isWandering: 0
   isMoving: 0
+  isInteracting: 0
+  isHeadingToFood: 0
+  isGivingBirth: 0
   SelectionCircle: {fileID: 4195356045741966, guid: 562903bda836dab43a115ab0ed9fdb37,
     type: 2}
+  InteractionPoint: {fileID: 4383599889101506}
+  LayEggPoint: {fileID: 0}
+  MainTarget: {fileID: 0}
   QueenWanda: {fileID: 195315614167716870}
 --- !u!114 &114977678466684114
 MonoBehaviour:

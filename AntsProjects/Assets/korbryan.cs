@@ -4,27 +4,29 @@ using UnityEngine;
 
 public class korbryan : MonoBehaviour
 {
-
+    
     private void FixedUpdate()
     {
         if(Input.GetKeyDown(KeyCode.A))
         {
-            Fart();
-        }
-
-        if(Input.GetKeyDown(KeyCode.B))
-        {
-            Shit();
+            Point();
         }
     }
 
-    void Fart()
+    void Point()
     {
-        Debug.Log(transform.name + " is farting...");
-    }
+        float X, Z, RandomX, RandomZ;
 
-    void Shit()
-    {
-        Debug.Log(transform.name + " is shitting...");
+        X = Nest.singleton.NestSize/2;
+        Z = Nest.singleton.NestSize/2;
+
+        RandomX = Random.Range(-X, X);
+        RandomZ = Random.Range(-Z, Z);
+
+        Vector3 TargetPoint = new Vector3(RandomX, 0.1f, RandomZ);
+
+        TargetPoint = Nest.singleton.transform.TransformPoint(TargetPoint/2f);
+
+        Debug.DrawLine(transform.position, TargetPoint, Color.green, 5f);
     }
 }

@@ -29,4 +29,11 @@ public class korbryan : MonoBehaviour
 
         Debug.DrawLine(transform.position, TargetPoint, Color.green, 5f);
     }
+
+    void Randomise()
+    {
+        int number = Random.Range(0, 2);
+
+        Debug.Log(number);
+    }
 }

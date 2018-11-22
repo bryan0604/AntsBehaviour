@@ -47,6 +47,7 @@ public class AntsQueen : MonoBehaviour
     public Transform InteractionPoint;
     public Transform LayEggPoint;
     public Transform MainTarget;
+    public Transform Eggs;
 
     public NavMeshAgent QueenWanda;
 
@@ -146,6 +147,8 @@ public class AntsQueen : MonoBehaviour
             {
                 Debug.Log(transform.name + " Birth!");
 
+                Instantiate(Eggs, LayEggPoint.position, Quaternion.identity);
+
                 _BirthChannel = BirthChannelingTime;
 
                 BirthCondition = 0;
@@ -153,6 +156,8 @@ public class AntsQueen : MonoBehaviour
                 isGivingBirth = false;
 
                 InvokeRepeating("Digestion", DigestionTime, DigestionTime);
+
+                InvokeRepeating("Birth", BirthIntervals, BirthIntervals);
 
                 StartCoroutine(Idle());
 

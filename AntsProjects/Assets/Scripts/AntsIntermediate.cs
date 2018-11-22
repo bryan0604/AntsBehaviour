@@ -4,12 +4,15 @@ using UnityEngine;
 using UnityEngine.AI;
 
 #region Work
-// 3. Queen Introductions
+// 1. Continue Behaviour after misplacement of Food outside the nest. (line.458)
 // 4. Growth
 // 5. Solve Wander sizing issue
-// 6. if no food, continue wander
 #endregion
-
+#region Errors
+// 1. Ant being spawned, when moving object it'll triggered Initiate Help function
+// 2. Array error after placing object and ishungry 
+#endregion
+    
 public class AntsIntermediate : MonoBehaviour
 {
     #region Variables
@@ -65,6 +68,15 @@ public class AntsIntermediate : MonoBehaviour
         //_StopDistance = StopDistance;
 
         Agent260.speed = MovementSpeed;
+
+        if(NestManager!=null)
+        {
+
+        }
+        else
+        {
+            NestManager = Nest.singleton;
+        }
 
         NestManager.AssignAntInfos(this);
 
@@ -203,7 +215,7 @@ public class AntsIntermediate : MonoBehaviour
             {
                 if (isWandering)
                 {
-                    Debug.Log("B");
+                    //Debug.Log("B");
                     Idle();
                 }
 
@@ -293,6 +305,8 @@ public class AntsIntermediate : MonoBehaviour
 
                 if (FoodisAtMouth == false)
                 {
+                    isFeeding = false;
+
                     Wander();
                 }
                 else
@@ -368,7 +382,7 @@ public class AntsIntermediate : MonoBehaviour
                         }
                     }
                 }
-                else
+                else // if food is not being carried and is being placed
                 {
                     if (food.isBeingPlaced)
                     {
@@ -382,7 +396,7 @@ public class AntsIntermediate : MonoBehaviour
     #region Reset Assist Ant Stats
     void AssistReset()
     {
-        Debug.Log(transform.name + " resume normal AI behaviours ");
+        Debug.LogWarning(transform.name + " resume normal AI behaviours ");
 
         OffMainTargetManager = true;
 
@@ -425,13 +439,31 @@ public class AntsIntermediate : MonoBehaviour
 
         OffMainTargetManager = true;
 
-        MainTarget = null;
-
         Agent260.avoidancePriority = 50;
 
         Debug.Log(transform.name + " placing Item");
 
-        Invoke("Wander", 2f);
+        if(isHungry)
+        {
+            if(f.IsInNest)
+            {
+                Debug.Log(transform.name + " food placed IsInnest = " +f.IsInNest);
+
+                SearchForFood(false, true);
+            }
+            else
+            {
+                Debug.Log(transform.name + " food placed but IsInnest = " + f.IsInNest);
+
+                // Might want to continue if Food is being placed out of nest
+            }
+        }
+        else
+        {
+            MainTarget = null;
+
+            Invoke("Wander", 2f);
+        }
     }
     #endregion
 
@@ -440,34 +472,33 @@ public class AntsIntermediate : MonoBehaviour
     {
         Debug.Log(transform.name + " travel home");
 
-        var X = Nest.singleton.X;
+        float X = Nest.singleton.NestSize/2;
         
-        var Z = Nest.singleton.Z;
+        float Z = Nest.singleton.NestSize/2;
 
         float RandomX = Random.Range(-X, X);
         
         float RandomZ = Random.Range(-Z, Z);
 
+        Vector3 TargetPoint = new Vector3(RandomX, 0.1f, RandomZ);
 
-        Collider[] AllContactedObjects = Physics.OverlapSphere(new Vector3(RandomX, 0.1f, RandomZ), 0.5F);
+        TargetPoint = Nest.singleton.transform.TransformPoint(TargetPoint );
+
+        Collider[] AllContactedObjects = Physics.OverlapSphere(TargetPoint, 0.25F);
 
         bool _FoundNest = false;
 
         foreach (var i in AllContactedObjects)
         {
-            //Debug.Log(i.name);
-
             if(i.gameObject.tag == "Nest")
             {
                 _FoundNest = true;
-
-                //Debug.Log("a");
             }
         }
 
         if(_FoundNest)
         {
-            if(isCarryingAnObject)
+            if (isCarryingAnObject)
             {
                 MovementSpeedManagement(true, 5);
             }
@@ -475,22 +506,20 @@ public class AntsIntermediate : MonoBehaviour
             {
                 MovementSpeedManagement(true, 0);
             }
-            
 
             Debug.Log(transform.name + " nest located!");
 
-            Debug.DrawLine(transform.position, new Vector3(RandomX, 0.5f, RandomZ), Color.cyan, 5f);
+            Debug.DrawLine(transform.position, TargetPoint, Color.cyan, 5f);
 
             Agent260.avoidancePriority = 49;
 
-            Agent260.SetDestination(new Vector3(RandomX, 0.5f, RandomZ));
+            Agent260.SetDestination(TargetPoint);
         }
         else
         {
-            Debug.Log(transform.name + " failed to locating Nest");
+            Debug.LogWarning(transform.name + " failed to locating Nest");
 
-            Debug.DrawLine(transform.position, new Vector3(RandomX, 0.5f, RandomZ), Color.red, 5f);
-            //TravelHome();
+            Debug.DrawLine(transform.position, TargetPoint, Color.red, 5f);
 
             Invoke("TravelHome", 0.1f);
         } 
@@ -514,7 +543,7 @@ public class AntsIntermediate : MonoBehaviour
             {
                 Debug.Log(transform.name + " is hungry");
 
-                SearchForFood();
+                SearchForFood(true,false);
             }
             else
             {
@@ -528,49 +557,199 @@ public class AntsIntermediate : MonoBehaviour
     }
     #endregion
 
-    #region Search Food
-    void SearchForFood()
+    #region Search Food to Eat
+    void SearchForFood(bool isRandomJob, bool EatFood)
     {
         Debug.Log(transform.name + " searching for food");
 
-        Collider[] AllFoods = Physics.OverlapSphere(transform.position, DetectRange);
+        #region Version 1
+        //Collider[] AllFoods = Physics.OverlapSphere(transform.position, DetectRange);
 
-        List<Food> Foods = new List<Food>();
+        //List<Food> Foods = new List<Food>();
 
-        foreach (var food in AllFoods)
+        //List<Food> FoodsAreInNest = new List<Food>();
+
+        //foreach (var food in AllFoods)
+        //{
+        //    if (food.GetComponent<Food>())
+        //    {
+        //        Food f = food.GetComponent<Food>();
+
+        //        if (f.isDepeleted || f.FoodCapacity <= 0)
+        //        {
+
+        //        }
+        //        else if(f.IsInNest) // if any food found in nest just go eat
+        //        {
+        //            FoodsAreInNest.Add(f);
+
+        //            //MoveToDestination(f.transform);
+
+        //            //return;
+        //        }
+        //        else if(f.FoodCapacity > 0)
+        //        {
+        //            Foods.Add(f);
+        //        }
+        //    }
+        //}
+
+        //if(FoodsAreInNest.Count > 0)
+        //{
+        //    MoveToDestination(FoodsAreInNest[Random.Range(0, FoodsAreInNest.Count)].transform);
+
+        //    return;
+        //}
+        //else
+        //{
+        //    foreach (var item in Foods)
+        //    {
+        //        if (item.isDepeleted || item.FoodCapacity <= 0 || item == null)
+        //        {
+        //            Foods.Remove(item);
+        //        }
+        //    }
+
+        //    if (Foods.Count > 0)
+        //    {
+        //        MoveToDestination(Foods[Random.Range(0, Foods.Count)].transform);
+        //    }
+        //    else
+        //    {
+        //        Debug.Log(transform.name + " no food found!");
+
+        //        Wander();
+        //    }
+        //}
+        #endregion
+
+        #region Version 2
+        Collider[] AllObjectsInZone = Physics.OverlapSphere(transform.position, DetectRange);
+        List<Food> DetectedFoods = new List<Food>();
+
+        Food food;
+
+        foreach (var i in AllObjectsInZone)
         {
-            if (food.GetComponent<Food>())
+            if(i.gameObject.tag == "Food")
             {
-                Food f = food.GetComponent<Food>();
+                Food foodo = i.GetComponent<Food>();
 
-                if (f.isDepeleted || f.FoodCapacity <= 0)
+                if(foodo.FoodCapacity > 0 && !foodo.isDepeleted)
                 {
-                    
+                    DetectedFoods.Add(i.GetComponent<Food>());
                 }
-                else if(f.IsInNest) // if any food found in nest just go eat
+            }
+        }
+
+        if (DetectedFoods.Count > 0)
+        {
+            int Number = (Random.Range(0, 2));
+
+            List<Food> FoodsInNest = new List<Food>();
+
+            MovementSpeedManagement(true, 0);
+
+            if (EatFood)
+            {
+                foreach (var foodie in DetectedFoods)
                 {
-                    MoveToDestination(f.transform);
+                    if(foodie.IsInNest)
+                    {
+                        FoodsInNest.Add(foodie);
+                    }
+                }
+
+                if (FoodsInNest.Count>0)
+                {
+                    food = FoodsInNest[Random.Range(0, FoodsInNest.Count)];
+                }
+                else
+                {
+                    Debug.LogWarning("A - Food not found");
 
                     return;
-                }
-                else if(f.FoodCapacity > 0)
-                {
-                    Foods.Add(f);
+                    //food = FoodsInNest[Random.Range(0, FoodsInNest.Count)];
                 }
             }
-        }
-
-        foreach (var item in Foods)
-        {
-            if(item.isDepeleted || item.FoodCapacity <=0 || item == null)
+            else
             {
-                Foods.Remove(item);
+                food = DetectedFoods[Random.Range(0, DetectedFoods.Count)];
             }
-        }
 
-        if(Foods.Count>0)
-        {
-            MoveToDestination(Foods[Random.Range(0, Foods.Count)].transform);
+            if (isRandomJob)
+            {
+                if (Number == 0) // carry
+                {
+                    if (food.IsInNest)
+                    {
+                        Debug.LogWarning(transform + " Revoking (In Nest)" + food.transform.name);
+
+                        SearchForFood(true, false);
+
+                    }
+                    else if (!food.IsInNest) // Carry (New Carry with Lifting Mechanism?)
+                    {
+                        Debug.Log(transform + " moving to (Out Nest)" + food.transform.name);
+
+                        food.isBeingPlaced = false;
+
+                        isGoingToCarryFood = true;
+
+                        OffMainTargetManager = false;
+
+                        MainTarget = food.transform;
+
+                        Agent260.SetDestination(food.transform.position);
+                    }
+                }
+                else // go Eat
+                {
+                    if (food.IsInNest)
+                    {
+                        Debug.Log(transform + " moving to (In Nest)" + food.transform.name);
+
+                        isGoingToEatFood = true;
+
+                        MainTarget = food.transform;
+
+                        Agent260.SetDestination(food.transform.position);
+                    }
+                    else if (!food.IsInNest) // Carry (New Carry with Lifting Mechanism?)
+                    {
+                        Debug.LogWarning(transform + " Revoking (Out Nest)" + food.transform.name);
+
+                        SearchForFood(true, false);
+                    }
+                }
+            }
+            else
+            {
+                if (food.IsInNest)
+                {
+                    Debug.Log(transform + " Commencing Feeding Mechanism " + food.transform.name);
+
+                    //isGoingToEatFood = true;
+
+                    //MainTarget = food.transform;
+
+                    //Agent260.SetDestination(food.transform.position);
+                }
+                //else if (!food.IsInNest) // Carry (New Carry with Lifting Mechanism?)
+                //{
+                //    Debug.Log(transform + " moving to (Out Nest)" + food.transform.name);
+
+                //    food.isBeingPlaced = false;
+
+                //    isGoingToCarryFood = true;
+
+                //    OffMainTargetManager = false;
+
+                //    MainTarget = food.transform;
+
+                //    Agent260.SetDestination(food.transform.position);
+                //}
+            }
         }
         else
         {
@@ -578,50 +757,59 @@ public class AntsIntermediate : MonoBehaviour
 
             Wander();
         }
+        #endregion
     }
     #endregion
 
     #region Move to Destination
-    void MoveToDestination(Transform TargetTransform)
+    void MoveToDestination(Food food)
     {
         MovementSpeedManagement(true, 0);
 
-        if (TargetTransform.GetComponent<Food>())
-        {
-            Food food = TargetTransform.GetComponent<Food>();
+        #region Version 1
+        //if (TargetTransform.GetComponent<Food>())
+        //{
+        //    Food food = TargetTransform.GetComponent<Food>();
 
-            if (food.IsInNest)
-            {
-                Debug.Log(transform + " moving to (In Nest)" + food.transform.name);
+        //    if (food.IsInNest)
+        //    {
+        //        Debug.Log(transform + " moving to (In Nest)" + food.transform.name);
 
-                isGoingToEatFood = true;
+        //        isGoingToEatFood = true;
 
-                MainTarget = food.transform;
+        //        MainTarget = food.transform;
 
-                Agent260.SetDestination(food.transform.position);
-            }
-            else if(!food.IsInNest) // Carry (New Carry with Lifting Mechanism?)
-            {
-                Debug.Log(transform + " moving to (Out Nest)" + food.transform.name);
+        //        Agent260.SetDestination(food.transform.position);
+        //    }
+        //    else if(!food.IsInNest) // Carry (New Carry with Lifting Mechanism?)
+        //    {
+        //        Debug.Log(transform + " moving to (Out Nest)" + food.transform.name);
 
-                food.isBeingPlaced = false;
+        //        food.isBeingPlaced = false;
 
-                isGoingToCarryFood = true;
+        //        isGoingToCarryFood = true;
 
-                OffMainTargetManager = false;
+        //        OffMainTargetManager = false;
 
-                // x 10 to move carryPoint Y position
-                //Debug.Log(food.GetComponent<Renderer>().bounds.size + " " + food.GetComponent<Renderer>().bounds.extents);
+        //        // x 10 to move carryPoint Y position
+        //        //Debug.Log(food.GetComponent<Renderer>().bounds.size + " " + food.GetComponent<Renderer>().bounds.extents);
 
-                MainTarget = food.transform;
+        //        MainTarget = food.transform;
 
-                Agent260.SetDestination(food.transform.position);
-            }
-            else if(food.IsBeingCarried)
-            {
-                Debug.Log(transform + " moving to help carry " + food.transform.name);
-            }
-        }
+        //        Agent260.SetDestination(food.transform.position);
+        //    }
+        //    else if(food.IsBeingCarried)
+        //    {
+        //        Debug.Log(transform + " moving to help carry " + food.transform.name);
+        //    }
+        //}
+        #endregion
+
+        #region Version 2
+
+       
+        #endregion
+
     }
     #endregion
 
@@ -675,6 +863,20 @@ public class AntsIntermediate : MonoBehaviour
     void ConditionCheck()
     {
         Debug.Log(transform.name + " checking Condition");
+        //if(NestManager.InsufficientFood)
+        //{
+
+        //    Debug.Log(transform.name + " nest has insufficient food");
+
+        //    isAbleToDoNextTask = true;
+
+        //    return;
+        //}
+        //else
+        //{
+        //    Debug.Log(transform.name + " nest has sufficient food");
+            
+        //}
 
         if(StomachCapacity < StomachRequirement)
         {

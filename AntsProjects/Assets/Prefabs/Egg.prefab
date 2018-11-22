@@ -26,7 +26,7 @@ GameObject:
   m_Layer: 0
   m_Name: Egg
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 5721338939258241955, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -96,10 +96,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47ad13c87a6ed8d42b82ddf0c2db10c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BornTime: 5
-  BornTimeFloat: 0
+  BornTime: 20
+  BornTimeFloat: 20
   isSpawned: 0
-  NewBornLarvae: {fileID: 4002725485170358, guid: 1862574ed28306f4b87f3c92490eedfc,
+  NewBornLarvae: {fileID: 4155430312766946, guid: 73a63375ffa612f478e3126465d2a6d3,
     type: 2}
 --- !u!135 &135884190445758126
 SphereCollider:

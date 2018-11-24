@@ -1,20 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class Nest : MonoBehaviour
 {
     public List<AntsIntermediate> Anntts;
     public List<Food> FoodAreInNest;
     public static Nest singleton;
+    [SerializeField]
     public float NestSize;
     public float X;
     public float Y;
     public float Z;
     public bool InsufficientFood;
     public Material SphereNest;
-	
-	void Start ()
+    
+    public bool UpdateSize;
+
+    private void OnValidate()
+    {
+        NestSize = transform.localScale.z/2;
+    }
+
+    void Start ()
     {
         singleton = this;
 
@@ -22,8 +31,8 @@ public class Nest : MonoBehaviour
         Y = transform.localScale.y/2;
         Z = transform.localScale.z/2;
 
-        //InvokeRepeating("OnNestCheckSupply", 0f, 10f);
-	}
+        //InvokeRepeating("OnNestCheckSupply", 0f, 5f);
+    }
 
     public void AssignAntInfos(AntsIntermediate ant)
     {
@@ -48,6 +57,7 @@ public class Nest : MonoBehaviour
 
     public void OnNestCheckSupply()
     {
+        //Debug.LogWarning("Running Supply Check");
         Collider[] StuffsInNest = Physics.OverlapSphere(transform.position, NestSize);
         FoodAreInNest = new List<Food>();
 
@@ -55,25 +65,49 @@ public class Nest : MonoBehaviour
         {
             if(item.gameObject.tag == "Food")
             {
-                FoodAreInNest.Add(item.GetComponent<Food>());
+                Food food = item.GetComponent<Food>();
+
+                if(food.isDepeleted||food.FoodCapacity <= 0)
+                {
+
+                }
+                else
+                {
+                    if (food.IsInNest == false)
+                    {
+
+                    }
+                    else
+                    {
+                        FoodAreInNest.Add(food);
+                    }
+                }   
             }
         }
 
-        if(FoodAreInNest.Count == 0)
-        {
-            InsufficientFood = true;
-        }
-        else
-        {
-            if (FoodAreInNest.Count < Mathf.RoundToInt(Anntts.Count / 2))
-            {
-                InsufficientFood = true;
-            }
-            else
-            {
-                InsufficientFood = false;
-            }
-        }
+        //if(FoodAreInNest.Count == 0)
+        //{
+        //    InsufficientFood = true;
+        //}
+        //else
+        //{
+        //    // 1 ant * 2 foods = required amount
+
+        //    int Required_Amount_Foods = Anntts.Count * 1;
+
+        //    if(FoodAreInNest.Count >= Required_Amount_Foods)
+        //    {
+        //        InsufficientFood = false;
+
+        //        //Debug.LogWarning("Sufficient food in nest");
+        //    }
+        //    else
+        //    {
+        //        InsufficientFood = true;
+
+        //        //Debug.LogWarning("Food need = " + (Required_Amount_Foods-FoodAreInNest.Count));
+        //    }
+        //}
     }
 
 

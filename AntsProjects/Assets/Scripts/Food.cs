@@ -66,7 +66,7 @@ public class Food : MonoBehaviour
 
     public void FoodCheck()
     {
-        Collider[] col = Physics.OverlapSphere(transform.position, transform.localScale.z);
+        Collider[] col = Physics.OverlapSphere(transform.position, transform.localScale.z/2f);
 
         foreach (var i in col)
         {

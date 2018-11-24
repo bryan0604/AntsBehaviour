@@ -330,6 +330,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3df391c341f7b244a88d995704819b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DetectedFoods: []
+  FoodsInNest: []
+  RandomTimeRange: 5
   StomachCapacity: 100
   StomachRequirement: 95
   StomachCrement: 2
@@ -337,8 +340,8 @@ MonoBehaviour:
   StopDistance: 0.1
   MovementSpeed: 1
   WanderRange: 2
-  DetectRange: 6
-  Time_DoingNothing: 5
+  DetectRange: 1
+  Time_DoingNothing: 1
   Time_Feeding: 0.1
   Agent260: {fileID: 195368577133448172}
   NestManager: {fileID: 0}

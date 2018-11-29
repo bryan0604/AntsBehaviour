@@ -333,6 +333,7 @@ MonoBehaviour:
   DetectedFoods: []
   FoodsInNest: []
   RandomTimeRange: 3
+  PatrolsAmount: 3
   StomachCapacity: 100
   StomachRequirement: 95
   StomachCrement: 2
@@ -345,6 +346,7 @@ MonoBehaviour:
   Time_Feeding: 0.1
   Agent260: {fileID: 195368577133448172}
   NestManager: {fileID: 0}
+  isPatrolling: 0
   isIdling: 0
   isWandering: 0
   isAbleToDoNextTask: 0
@@ -356,8 +358,7 @@ MonoBehaviour:
   isCarryingAnObject: 0
   isHelpingCarryAnObject: 0
   OffMainTargetManager: 1
-  DebugBool: 
-  DebugBool2: 
+  isSendingDistressSignal: 0
   TestMode: 0
   DistressSignalObject: {fileID: 4558124011095006, guid: 6adb27065cfaa1c408b72aadf226fbb5,
     type: 2}

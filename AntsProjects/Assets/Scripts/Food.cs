@@ -5,16 +5,16 @@ using UnityEngine;
 public class Food : MonoBehaviour
 {
     public float smoothSpeed;
-
+    public float Kilograms;
     public int FoodCapacity = 30;
-
+    public bool isHeavy;
     public bool ActivateVacuum;
     public bool IsInNest;
     public bool IsBeingCarried;
     public bool isSetOnCarriedPosition;
     public bool isBeingPlaced;
     public bool isDepeleted;
-
+    public bool isBeingLocated;
     public string VoidFoodDecay = "FoodDecay";
 
     public Material myMats;
@@ -29,14 +29,30 @@ public class Food : MonoBehaviour
     {
         myMats = GetComponent<Material>();
 
+        FoodWeightCheck();
+
         FoodCheck();
+    }
+
+    void FoodWeightCheck()
+    {
+        Kilograms = (transform.localScale.x + transform.localScale.y + transform.localScale.z);
+
+        if(Kilograms > 1.5f)
+        {
+            isHeavy = true;
+        }
+        else
+        {
+            isHeavy = false;
+        }
     }
 
     private void FixedUpdate()
     {
-        if(Input.GetKey(KeyCode.UpArrow))
+        if(Input.GetKeyDown(KeyCode.UpArrow))
         {
-            FoodCapacity -= 1;
+            ConsumingFood(1);
         }
 
         if(ActivateVacuum)
@@ -88,6 +104,10 @@ public class Food : MonoBehaviour
     public void ConsumingFood(int _Quantity)
     {
         FoodCapacity -= _Quantity;
+
+        transform.localScale -= new Vector3(0.01f, 0.01f, 0.01f);
+
+        FoodWeightCheck();
 
         if (FoodCapacity <= 0)
         {

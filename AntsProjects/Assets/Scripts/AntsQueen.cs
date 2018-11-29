@@ -3,12 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-#region Works
-//1. Queen wander only in nest
-//2. Steps after gave birth.
-//3. Move the egg backwards few length then activate hatching
-#endregion
-
 public class AntsQueen : MonoBehaviour
 {
     public float StopDistance;

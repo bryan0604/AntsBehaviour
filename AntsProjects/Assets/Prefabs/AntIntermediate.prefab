@@ -332,15 +332,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DetectedFoods: []
   FoodsInNest: []
-  RandomTimeRange: 5
+  RandomTimeRange: 3
   StomachCapacity: 100
   StomachRequirement: 95
   StomachCrement: 2
   StomachDigestTime: 2
   StopDistance: 0.1
   MovementSpeed: 1
-  WanderRange: 2
-  DetectRange: 1
+  WanderRange: 1
+  DetectRange: 6
   Time_DoingNothing: 1
   Time_Feeding: 0.1
   Agent260: {fileID: 195368577133448172}
@@ -359,6 +359,8 @@ MonoBehaviour:
   DebugBool: 
   DebugBool2: 
   TestMode: 0
+  DistressSignalObject: {fileID: 4558124011095006, guid: 6adb27065cfaa1c408b72aadf226fbb5,
+    type: 2}
   InteractionPoint: {fileID: 4322916171302702}
   CarryPoint: {fileID: 4040474371783036}
   MainTarget: {fileID: 0}

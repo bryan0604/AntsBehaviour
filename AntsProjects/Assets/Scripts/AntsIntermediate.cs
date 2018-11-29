@@ -3,24 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-#region Work
-// 1. Continue Behaviour after misplacement of Food outside the nest. (line.458) (DONE)
-// 4. Growth
-// 5. Solve Wander sizing issue (DONE)
-#endregion
-#region Errors
-// 1. Ant being spawned, when moving object it'll triggered Initiate Help function (SOLVED)
-// 2. Array error after placing object and ishungry (SOLVED)
-#endregion
-
 public class AntsIntermediate : MonoBehaviour
 {
     public List<Food> DetectedFoods = new List<Food>();
-
     public List<Food> FoodsInNest = new List<Food>();
 
     public float RandomTimeRange;
-
+    public int PatrolsAmount;
+    private int _PatrolsAmount;
     #region Variables
     public float StomachCapacity=100f;
     public float StomachRequirement=95f;
@@ -37,7 +27,7 @@ public class AntsIntermediate : MonoBehaviour
     private float _Feeding;
     public NavMeshAgent Agent260;
     public Nest NestManager;
-
+    public bool isPatrolling;
     public bool isIdling;
     public bool isWandering;
     public bool isAbleToDoNextTask;
@@ -49,13 +39,10 @@ public class AntsIntermediate : MonoBehaviour
     public bool isCarryingAnObject;
     public bool isHelpingCarryAnObject;
     public bool OffMainTargetManager;
-
-    public List<bool> DebugBool = new List<bool>();
-    public List<bool> DebugBool2 = new List<bool>();
-    
-
+    public bool isSendingDistressSignal;
     public bool TestMode;
 
+    public Transform DistressSignalObject;
     public Transform InteractionPoint;
     public Transform CarryPoint;
     public Transform MainTarget;
@@ -71,6 +58,7 @@ public class AntsIntermediate : MonoBehaviour
 
         _Feeding = Time_Feeding;
 
+        _PatrolsAmount = PatrolsAmount;
         //_StopDistance = StopDistance;
 
         Agent260.speed = MovementSpeed;
@@ -133,32 +121,30 @@ public class AntsIntermediate : MonoBehaviour
             #endregion
 
             #region Selection Circle
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-            RaycastHit hit;
+            //RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit))
-            {
-                Vector3 _scales = new Vector3(transform.localScale.x*2, 0.01f, transform.localScale.z*2);
+            //if (Physics.Raycast(ray, out hit))
+            //{
+            //    Vector3 _scales = new Vector3(transform.localScale.x*2, 0.01f, transform.localScale.z*2);
 
-                GameObject _SelectionCircle = Instantiate(Selectioncircle.gameObject, hit.point, Quaternion.identity);
+            //    GameObject _SelectionCircle = Instantiate(Selectioncircle.gameObject, hit.point, Quaternion.identity);
 
-                _SelectionCircle.transform.localScale = _scales;
+            //    _SelectionCircle.transform.localScale = _scales;
 
-                _SelectionCircle.GetComponent<SelectionCircle>().ImBelongTo = transform;
+            //    _SelectionCircle.GetComponent<SelectionCircle>().ImBelongTo = transform;
 
-            }
+            //}
             #endregion
-
         }
 
         if (Agent260.hasPath)
         {
             if (Agent260.remainingDistance < StopDistance)
             {
-                if (isWandering)
+                if (isWandering || isPatrolling)
                 {
-                    //Debug.Log("B");
                     Idle();
                 }
 
@@ -167,14 +153,6 @@ public class AntsIntermediate : MonoBehaviour
                     PlaceItem();
                 }
             }
-            else
-            {
-
-            }
-        }
-        else
-        {
-            //Debu/*g*/.Log("/*Stucked*/");
         }
 
         // this make wander and idle connections
@@ -496,10 +474,15 @@ public class AntsIntermediate : MonoBehaviour
             isAbleToDoNextTask = true;
         }
 
-        Debug.Log(transform.name + " queuing next task");
-
         if(isAbleToDoNextTask)
         {
+            if(isSendingDistressSignal)
+            {
+                PatrollingAroundFood();
+
+                return;
+            }
+
             if(isHungry)
             {
                 Debug.Log(transform.name + " is hungry");
@@ -651,6 +634,8 @@ public class AntsIntermediate : MonoBehaviour
 
             isWandering = false;
 
+            isPatrolling = false;
+
             isIdling = true;
 
             _DoingNothing = Time_DoingNothing;
@@ -759,8 +744,20 @@ public class AntsIntermediate : MonoBehaviour
             if (MainTarget.GetComponent<Food>())
             {
                 Food food = MainTarget.GetComponent<Food>();
+                if(food.isHeavy)
+                {
+                    if(food.isBeingLocated == false)
+                    {
+                        Debug.Log("Food is Heavy!!");
 
-                if(food.IsBeingCarried)
+                        food.isBeingLocated = true;
+
+                        MainTarget = food.transform;
+
+                        DistressSignal();
+                    }
+                }
+                else if(food.IsBeingCarried)
                 {
                     if (isHelpingCarryAnObject) return;
 
@@ -792,6 +789,105 @@ public class AntsIntermediate : MonoBehaviour
                 }
             }
         }
+    }
+    #endregion
+
+    #region Distress Signal
+    void DistressSignal()
+    {
+        Debug.Log(transform.name + " sending a distress signal...");
+
+        isSendingDistressSignal = true;
+
+        DistressSignalManager DS = Instantiate(DistressSignalObject.GetComponent<DistressSignalManager>(), transform.position, Quaternion.identity);
+
+        DS.TargetedFood = MainTarget;
+
+        PatrollingAroundFood();
+    }
+    #endregion
+
+    #region Distress Behaviour - Secure Perimeter
+    void PatrollingAroundFood()
+    {
+        _PatrolsAmount -= 1;
+        //Debug.Log(_PatrolsAmount);
+        if(_PatrolsAmount <= 0)
+        {
+            Debug.Log(transform.name + " is done securing the perimeter");
+
+            BreakDownFood();
+
+            _PatrolsAmount = PatrolsAmount;
+        }
+        else
+        {
+            Agent260.ResetPath();
+
+            float AreaX, AreaZ;
+
+            AreaX = Random.Range(-(WanderRange), (WanderRange));
+
+            AreaZ = Random.Range(-(WanderRange), (WanderRange));
+
+            Vector3 V = new Vector3(transform.position.x + AreaX, 0.1f, transform.position.z + AreaZ);
+
+            bool AbleToMove = true;
+            Collider[] ListObjects = Physics.OverlapSphere(V, transform.localScale.z);
+
+            foreach (var i in ListObjects)
+            {
+                if (i.gameObject.tag == "Food") // may add more in the future
+                {
+                    AbleToMove = false;
+                }
+                else if (i.gameObject.tag == "Ant")
+                {
+                    AbleToMove = false;
+                }
+            }
+
+            if (AbleToMove)
+            {
+                Debug.Log(transform.name + " is Patrolling");
+
+                Agent260.SetDestination(V);
+
+                isPatrolling = true;
+
+                isAbleToDoNextTask = false;
+
+                MovementSpeedManagement(true, 0);
+
+                //Debug.DrawLine(transform.position, V, Color.cyan, 5f);
+
+                Vector3 _scales = new Vector3(transform.localScale.x * 2, 0.01f, transform.localScale.z * 2);
+
+                GameObject _SelectionCircle = Instantiate(Selectioncircle.gameObject, V, Quaternion.identity);
+
+                _SelectionCircle.transform.localScale = _scales;
+
+                _SelectionCircle.GetComponent<SelectionCircle>().ImBelongTo = transform;
+            }
+            else
+            {
+                Debug.Log(transform.name + " is not able to Patrol");
+                Debug.DrawLine(transform.position, V, Color.red, 5f);
+
+                Invoke("PatrollingAroundFood", 1f);
+            }
+        }
+    }
+    #endregion
+
+    #region Breaking Down Food
+    void BreakDownFood()
+    {
+        Debug.Log(transform.name + " going to break down food " + MainTarget.name);
+
+        MovementSpeedManagement(true, 0);
+
+        Agent260.SetDestination(MainTarget.position);
     }
     #endregion
 

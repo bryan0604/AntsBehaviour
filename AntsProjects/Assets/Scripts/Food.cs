@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Food : MonoBehaviour
 {
+    public float X, Y, Z;
     public float smoothSpeed;
     public float Kilograms;
     public int FoodCapacity = 30;
@@ -22,7 +23,7 @@ public class Food : MonoBehaviour
 
     public Transform Ant;
     public Transform MainCarryAnt;
-
+    public Transform SmallPieceFood;
     public Vector3 offset;
 
     private void Start()
@@ -32,9 +33,39 @@ public class Food : MonoBehaviour
         FoodWeightCheck();
 
         FoodCheck();
+
+        X = transform.localScale.x / FoodCapacity;
+        Y = transform.localScale.y / FoodCapacity;
+        Z = transform.localScale.z / FoodCapacity;
+        
     }
 
-    void FoodWeightCheck()
+    public void ProcessingFoodBreakdown(Transform _carryPoint, AntsIntermediate _Ant)
+    {
+        Debug.LogWarning(transform.name + " processing break down...");
+
+        Food _piecefood = Instantiate(SmallPieceFood.GetComponent<Food>(), transform.position, Quaternion.identity);
+
+        _piecefood.MoveTowards(_carryPoint.transform);
+
+        _piecefood.FoodCapacity = 999;
+
+        _piecefood.MainCarryAnt = _Ant.transform;
+
+        _Ant.MainTarget = _piecefood.transform;
+
+        _Ant.OnCarryPointgetTarget(_piecefood.transform);
+
+        //_carryPoint.localPosition = new Vector3(_carryPoint.localPosition.x, 1.5f, _carryPoint.localPosition.z);
+
+        FoodCapacity -= 1;
+
+        transform.localScale -= new Vector3(0.07f, 0.07f, 0.07f);
+
+        FoodWeightCheck();
+    }
+
+    public void FoodWeightCheck()
     {
         Kilograms = (transform.localScale.x + transform.localScale.y + transform.localScale.z);
 
@@ -46,6 +77,8 @@ public class Food : MonoBehaviour
         {
             isHeavy = false;
         }
+
+        Debug.LogWarning(transform.name + " is Heavy = " + isHeavy);
     }
 
     private void FixedUpdate()
@@ -80,10 +113,25 @@ public class Food : MonoBehaviour
         }
     }
 
+    void OnScaleReduced()
+    {
+        if (Mathf.Round(transform.localScale.x * 10000f) / 10000f == Mathf.Round(X * 10000f) / 10000f)
+        {
+            
+        }
+        else
+        {
+            transform.localScale -= new Vector3(X, Y, Z);
+        }
+    }
+
     public void FoodCheck()
     {
-        Collider[] col = Physics.OverlapSphere(transform.position, transform.localScale.z/2f);
-
+        Vector3 A = new Vector3(transform.position.x, transform.localPosition.y-2f, transform.position.z);
+        Vector3 B = new Vector3(transform.position.x, transform.localPosition.y+2f, transform.position.z);
+        
+        Collider[] col = Physics.OverlapCapsule(A,B, transform.localScale.z/2f);
+     
         foreach (var i in col)
         {
             if(i.GetComponent<Nest>())
@@ -105,9 +153,7 @@ public class Food : MonoBehaviour
     {
         FoodCapacity -= _Quantity;
 
-        transform.localScale -= new Vector3(0.01f, 0.01f, 0.01f);
-
-        FoodWeightCheck();
+        OnScaleReduced();
 
         if (FoodCapacity <= 0)
         {

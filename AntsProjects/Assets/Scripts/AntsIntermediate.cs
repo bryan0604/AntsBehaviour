@@ -8,6 +8,7 @@ public class AntsIntermediate : MonoBehaviour
     public List<Food> DetectedFoods = new List<Food>();
     public List<Food> FoodsInNest = new List<Food>();
 
+    public float CarryRange;
     public float RandomTimeRange;
     public int PatrolsAmount;
     private int _PatrolsAmount;
@@ -47,6 +48,8 @@ public class AntsIntermediate : MonoBehaviour
     public Transform CarryPoint;
     public Transform MainTarget;
     public Transform Selectioncircle;
+
+    public SphereCollider _InteractCollider;
     #endregion
 
     #region Start
@@ -244,6 +247,8 @@ public class AntsIntermediate : MonoBehaviour
 
                     if (StomachCapacity >= 100)
                     {
+                        InteractionPoint.GetComponent<SphereCollider>().enabled = true;
+
                         isFeeding = false;
 
                         isHungry = false;
@@ -281,7 +286,7 @@ public class AntsIntermediate : MonoBehaviour
                         if (Vector3.Distance(transform.position, food.transform.position) < StopDistance + 0.3f)
                         {
                             //Debug.Log(transform.name + " NEAR");
-                            RotateToCorrectAngle();
+                            //RotateToCorrectAngle();
 
                             Agent260.speed = 0;
                         }
@@ -331,7 +336,7 @@ public class AntsIntermediate : MonoBehaviour
 
         MainTarget = null;
 
-        InteractionPoint.GetComponent<SphereCollider>().enabled = true;
+        _InteractCollider.enabled = true;
 
         float t = Random.Range(0, RandomTimeRange); // 
 
@@ -342,8 +347,6 @@ public class AntsIntermediate : MonoBehaviour
     #region Rotation - Transform Corrections
     void RotateToCorrectAngle()
     {
-        if (MainTarget == null)
-            return;
         Vector3 dir = MainTarget.position - transform.position;
         Quaternion lookRotation = Quaternion.LookRotation(dir);
         Vector3 rotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.smoothDeltaTime * 5f).eulerAngles;
@@ -360,7 +363,7 @@ public class AntsIntermediate : MonoBehaviour
 
         isCarryingAnObject = false;
 
-        if(MainTarget.GetComponent<Food>()!=null)
+        if (MainTarget.GetComponent<Food>()!=null)
         {
             f = MainTarget.GetComponent<Food>();
 
@@ -369,6 +372,8 @@ public class AntsIntermediate : MonoBehaviour
             f.FoodCheck();
 
             OffMainTargetManager = true;
+
+            isGoingToCarryFood = false;
 
             Agent260.avoidancePriority = 50;
 
@@ -753,8 +758,15 @@ public class AntsIntermediate : MonoBehaviour
                         food.isBeingLocated = true;
 
                         MainTarget = food.transform;
+                        //MainTarget = null;
 
                         DistressSignal();
+                    }
+                    else
+                    {
+                        Debug.Log(transform.name + " processing breaking down " + food.name);
+
+                        OnBreakingDownFood(food);
                     }
                 }
                 else if(food.IsBeingCarried)
@@ -763,7 +775,7 @@ public class AntsIntermediate : MonoBehaviour
 
                     Debug.Log(transform.name + " Initiate helping to carry  ");
 
-                    InteractionPoint.GetComponent<SphereCollider>().enabled = false;
+                    _InteractCollider.enabled = false;
 
                     MovementSpeedManagement(true, 0);
 
@@ -792,6 +804,16 @@ public class AntsIntermediate : MonoBehaviour
     }
     #endregion
 
+    #region Break down Mechanism
+    void OnBreakingDownFood(Food food)
+    {
+        //food.MainCarryAnt = transform;
+        _InteractCollider.enabled = false;
+
+        food.ProcessingFoodBreakdown(CarryPoint,this);
+    }
+    #endregion
+
     #region Distress Signal
     void DistressSignal()
     {
@@ -810,11 +832,12 @@ public class AntsIntermediate : MonoBehaviour
     #region Distress Behaviour - Secure Perimeter
     void PatrollingAroundFood()
     {
-        _PatrolsAmount -= 1;
         //Debug.Log(_PatrolsAmount);
-        if(_PatrolsAmount <= 0)
+        if (_PatrolsAmount <= 0)
         {
             Debug.Log(transform.name + " is done securing the perimeter");
+
+            isPatrolling = false;
 
             BreakDownFood();
 
@@ -850,6 +873,8 @@ public class AntsIntermediate : MonoBehaviour
             if (AbleToMove)
             {
                 Debug.Log(transform.name + " is Patrolling");
+
+                _PatrolsAmount -= 1;
 
                 Agent260.SetDestination(V);
 
@@ -898,6 +923,8 @@ public class AntsIntermediate : MonoBehaviour
 
         Food.MainCarryAnt = transform;
 
+        OnCarryPointgetTarget(Food.transform);
+
         Food.MoveTowards(CarryPoint);
 
         Debug.Log(transform.name + " Moving object");
@@ -914,4 +941,11 @@ public class AntsIntermediate : MonoBehaviour
         isFeeding = true;
     }
     #endregion
+
+    public void OnCarryPointgetTarget(Transform ObjectToBeCarry)
+    {
+        float SizeArea = CarryRange* (ObjectToBeCarry.localPosition.z + ObjectToBeCarry.localPosition.y + ObjectToBeCarry.localPosition.x);
+
+        CarryPoint.localPosition = new Vector3(CarryPoint.localPosition.x, SizeArea,CarryPoint.localPosition.z );
+    }
 }

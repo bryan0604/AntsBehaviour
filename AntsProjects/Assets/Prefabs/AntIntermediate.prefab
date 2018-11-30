@@ -58,7 +58,7 @@ GameObject:
   m_Layer: 9
   m_Name: CarryArea
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 4422084297763085224, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -174,7 +174,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1310308796701324}
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.00000000914434, y: 5, z: 0.28}
+  m_LocalPosition: {x: -0.00000000914434, y: 3.25, z: 0.28}
   m_LocalScale: {x: 3.0756927, y: 3.0756936, z: 3.0756156}
   m_Children: []
   m_Father: {fileID: 4012014519194062}
@@ -187,7 +187,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1409405794268100}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.6392933, y: -0.08375999, z: -0.089}
+  m_LocalPosition: {x: 2.5850015, y: 0.25024, z: -1.3310001}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children:
   - {fileID: 4012014519194062}
@@ -332,6 +332,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DetectedFoods: []
   FoodsInNest: []
+  CarryRange: 0.1
   RandomTimeRange: 3
   PatrolsAmount: 3
   StomachCapacity: 100
@@ -367,6 +368,7 @@ MonoBehaviour:
   MainTarget: {fileID: 0}
   Selectioncircle: {fileID: 4195356045741966, guid: 562903bda836dab43a115ab0ed9fdb37,
     type: 2}
+  _InteractCollider: {fileID: 135963370681043328}
 --- !u!114 &114484388900837166
 MonoBehaviour:
   m_ObjectHideFlags: 1

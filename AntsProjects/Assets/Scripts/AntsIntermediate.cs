@@ -839,6 +839,8 @@ public class AntsIntermediate : MonoBehaviour
 
             isPatrolling = false;
 
+            isSendingDistressSignal = false;
+
             BreakDownFood();
 
             _PatrolsAmount = PatrolsAmount;

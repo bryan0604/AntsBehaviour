@@ -60,8 +60,6 @@ public class Food : MonoBehaviour
 
         FoodCapacity -= 1;
 
-        transform.localScale -= new Vector3(0.07f, 0.07f, 0.07f);
-
         FoodWeightCheck();
     }
 

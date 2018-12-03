@@ -9,6 +9,7 @@
 // 7. Introducing A smaller piece of food. (DONE)
 // 8. create a variable for Patrols Range.
 // 9. Ant's CarryPoint to have a correction sizing mechanics. might wanna use Scale instead of position
+// 10. Ant's facing the correct object target.
 #endregion
 
 #region Errors Pending

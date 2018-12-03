@@ -10,6 +10,7 @@ public class AntsIntermediate : MonoBehaviour
 
     public float CarryRange;
     public float RandomTimeRange;
+    public float FoodDetectDistance = 1f;
     public int PatrolsAmount;
     private int _PatrolsAmount;
     #region Variables
@@ -42,13 +43,13 @@ public class AntsIntermediate : MonoBehaviour
     public bool OffMainTargetManager;
     public bool isSendingDistressSignal;
     public bool TestMode;
-
+    private bool _FoodRangeManagement;
     public Transform DistressSignalObject;
     public Transform InteractionPoint;
     public Transform CarryPoint;
     public Transform MainTarget;
     public Transform Selectioncircle;
-
+    public Food _MainFood;
     public SphereCollider _InteractCollider;
     #endregion
 
@@ -142,6 +143,16 @@ public class AntsIntermediate : MonoBehaviour
             #endregion
         }
 
+        if (isGoingToEatFood)
+        {
+            if (Agent260.remainingDistance < FoodDetectDistance)
+            {
+                //Debug.Log("Here");
+
+                FoodRangeManagement();
+            }
+        }
+
         if (Agent260.hasPath)
         {
             if (Agent260.remainingDistance < StopDistance)
@@ -179,6 +190,54 @@ public class AntsIntermediate : MonoBehaviour
 
         MainTargetManager();
  
+    }
+
+    void FoodRangeManagement()
+    {
+        bool _gotCha = false;
+
+        if(_FoodRangeManagement == false)
+        {
+            if (_MainFood != null)
+            {
+                MovementSpeedManagement(false, 0);
+
+                RaycastHit[] hit;
+
+                hit = Physics.RaycastAll(transform.position, transform.TransformDirection(Vector3.forward), FoodDetectDistance, 999, QueryTriggerInteraction.UseGlobal);
+
+                if(hit.Length<=0)
+                {
+                    Debug.Log("Hit Nothing");
+                }
+                else
+                {
+                    foreach (var item in hit)
+                    {
+                        Debug.Log(item);
+
+                        if(item.transform == _MainFood.transform)
+                        {
+                            _gotCha = true;
+
+                            Debug.Log(transform.name + " facing = " + _MainFood.transform.name);
+                        }              
+                    }
+                }
+                
+                if(_gotCha)
+                {
+                    //Debug.Log("A");
+                }
+                else
+                {
+
+                    RotateToCorrectAngle();
+
+                    //Debug.Log("B");
+                }
+            }
+        }
     }
 
     #region Feeding
@@ -277,13 +336,16 @@ public class AntsIntermediate : MonoBehaviour
         {
             if (MainTarget.GetComponent<Food>())
             {
-                Food food = MainTarget.GetComponent<Food>();
-
-                if (food.IsBeingCarried) // once food is being carried, check
+                if(_MainFood == null || _MainFood != MainTarget.GetComponent<Food>())
                 {
-                    if (food.MainCarryAnt != transform)//if its not you carry , then u assist
+                    _MainFood = MainTarget.GetComponent<Food>();
+                }
+
+                if (_MainFood.IsBeingCarried) // once food is being carried, check
+                {
+                    if (_MainFood.MainCarryAnt != transform)//if its not you carry , then u assist
                     {
-                        if (Vector3.Distance(transform.position, food.transform.position) < StopDistance + 0.3f)
+                        if (Vector3.Distance(transform.position, _MainFood.transform.position) < StopDistance + 0.3f)
                         {
                             //Debug.Log(transform.name + " NEAR");
                             //RotateToCorrectAngle();
@@ -297,11 +359,11 @@ public class AntsIntermediate : MonoBehaviour
                             Agent260.speed = MovementSpeed;
                         }
 
-                        Agent260.SetDestination(food.transform.position); // follow the food "Note" may put a range
+                        Agent260.SetDestination(_MainFood.transform.position); // follow the food "Note" may put a range
                     }
                     else
                     {
-                        if (food.isSetOnCarriedPosition) // if you are the one carrying,
+                        if (_MainFood.isSetOnCarriedPosition) // if you are the one carrying,
                         {
                             if (!isCarryingAnObject) // travel home once isCarryAnObj is true
                             {
@@ -314,7 +376,7 @@ public class AntsIntermediate : MonoBehaviour
                 }
                 else // if food is not being carried and is being placed
                 {
-                    if (food.isBeingPlaced)
+                    if (_MainFood.isBeingPlaced)
                     {
                         AssistReset();
                     }
@@ -336,8 +398,6 @@ public class AntsIntermediate : MonoBehaviour
 
         MainTarget = null;
 
-        _InteractCollider.enabled = true;
-
         float t = Random.Range(0, RandomTimeRange); // 
 
         Invoke("Wander", t);
@@ -357,8 +417,6 @@ public class AntsIntermediate : MonoBehaviour
     #region Place Item In Nest
     void PlaceItem()
     {
-        MovementSpeedManagement(false,0);
-
         Food f;
 
         isCarryingAnObject = false;
@@ -384,6 +442,8 @@ public class AntsIntermediate : MonoBehaviour
                 if (f.IsInNest)
                 {
                     Debug.Log(transform.name + " food placed IsInnest = " + f.IsInNest);
+
+                    MovementSpeedManagement(false, 0);
 
                     isFeeding = true;
                 }
@@ -714,6 +774,8 @@ public class AntsIntermediate : MonoBehaviour
 
             GameObject _SelectionCircle = Instantiate(Selectioncircle.gameObject, V, Quaternion.identity);
 
+            _InteractCollider.enabled = true;
+
             _SelectionCircle.transform.localScale = _scales;
 
             _SelectionCircle.GetComponent<SelectionCircle>().ImBelongTo = transform;
@@ -737,67 +799,65 @@ public class AntsIntermediate : MonoBehaviour
     #endregion
 
     #region Collision
+
     private void OnTriggerEnter(Collider other)
     {
         if (MainTarget == null) return; // must have a Target then check Interacting;
 
-        if(MainTarget == other.transform)
+        if(_MainFood == other.GetComponent<Food>())
         {
             Agent260.speed = 0f;
             Agent260.velocity = Vector3.zero;
             //Debug.Log(transform.name + " Check interaction ");
-            if (MainTarget.GetComponent<Food>())
+            
+            if(_MainFood.isHeavy && !_MainFood.IsInNest)
             {
-                Food food = MainTarget.GetComponent<Food>();
-                if(food.isHeavy)
+                if(_MainFood.isBeingLocated == false)
                 {
-                    if(food.isBeingLocated == false)
-                    {
-                        Debug.Log("Food is Heavy!!");
+                    Debug.Log("Food is Heavy!!");
 
-                        food.isBeingLocated = true;
+                    _MainFood.isBeingLocated = true;
 
-                        MainTarget = food.transform;
-                        //MainTarget = null;
+                    MainTarget = _MainFood.transform;
+                    //MainTarget = null;
 
-                        DistressSignal();
-                    }
-                    else
-                    {
-                        Debug.Log(transform.name + " processing breaking down " + food.name);
-
-                        OnBreakingDownFood(food);
-                    }
-                }
-                else if(food.IsBeingCarried)
-                {
-                    if (isHelpingCarryAnObject) return;
-
-                    Debug.Log(transform.name + " Initiate helping to carry  ");
-
-                    _InteractCollider.enabled = false;
-
-                    MovementSpeedManagement(true, 0);
-
-                    //StopDistance = 0.7f;
-
-                    isHelpingCarryAnObject = true;
+                    DistressSignal();
                 }
                 else
                 {
-                    if (isGoingToEatFood)
-                    {
-                        isGoingToEatFood = false;
+                    Debug.Log(transform.name + " processing breaking down " + _MainFood.name);
 
-                        ConsumeFood();
-                    }
+                    OnBreakingDownFood(_MainFood);
+                }
+            }
+            else if(_MainFood.IsBeingCarried)
+            {
+                if (isHelpingCarryAnObject) return;
 
-                    if (isGoingToCarryFood)
-                    {
-                        isGoingToCarryFood = false;
+                Debug.Log(transform.name + " Initiate helping to carry  ");
 
-                        MovingObjectMechanism();
-                    }
+                _InteractCollider.enabled = false;
+
+                MovementSpeedManagement(true, 0);
+
+                //StopDistance = 0.7f;
+
+                isHelpingCarryAnObject = true;
+            }
+            else
+            {
+                if (isGoingToEatFood)
+                {
+                    isGoingToEatFood = false;
+
+                    ConsumeFood();
+                }
+
+                if (isGoingToCarryFood)
+                {
+                    isGoingToCarryFood = false;
+
+                    MovingObjectMechanism();
                 }
             }
         }
@@ -921,15 +981,16 @@ public class AntsIntermediate : MonoBehaviour
     #region Carry Mechanic
     void MovingObjectMechanism()
     {
-        Food Food = MainTarget.GetComponent<Food>();
+        if(_MainFood!=null)
+        {
+            _MainFood.MainCarryAnt = transform;
 
-        Food.MainCarryAnt = transform;
+            OnCarryPointgetTarget(_MainFood.transform);
 
-        OnCarryPointgetTarget(Food.transform);
+            _MainFood.MoveTowards(CarryPoint);
 
-        Food.MoveTowards(CarryPoint);
-
-        Debug.Log(transform.name + " Moving object");
+            Debug.Log(transform.name + " Moving object");
+        }
     }
     #endregion
 

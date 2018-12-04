@@ -48,7 +48,7 @@ public class Food : MonoBehaviour
 
         _piecefood.MoveTowards(_carryPoint.transform);
 
-        _piecefood.FoodCapacity = 999;
+        _piecefood.FoodCapacity = 10;
 
         _piecefood.MainCarryAnt = _Ant.transform;
 
@@ -57,6 +57,7 @@ public class Food : MonoBehaviour
         _Ant.OnCarryPointgetTarget(_piecefood.transform);
 
         //_carryPoint.localPosition = new Vector3(_carryPoint.localPosition.x, 1.5f, _carryPoint.localPosition.z);
+        OnScaleReduced();
 
         FoodCapacity -= 1;
 
@@ -121,6 +122,8 @@ public class Food : MonoBehaviour
         {
             transform.localScale -= new Vector3(X, Y, Z);
         }
+
+        FoodCheck();
     }
 
     public void FoodCheck()

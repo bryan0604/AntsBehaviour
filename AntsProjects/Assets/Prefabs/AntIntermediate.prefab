@@ -187,7 +187,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1409405794268100}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.5850015, y: 0.25024, z: -1.3310001}
+  m_LocalPosition: {x: -0.584, y: 0.25024, z: 0.44}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children:
   - {fileID: 4012014519194062}
@@ -202,8 +202,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1371983385434792}
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: 1.44, z: 0}
-  m_LocalScale: {x: 3.0756931, y: 3.0756938, z: 3.0756938}
+  m_LocalPosition: {x: -0, y: 0.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4012014519194062}
   m_RootOrder: 0
@@ -334,6 +334,7 @@ MonoBehaviour:
   FoodsInNest: []
   CarryRange: 0.1
   RandomTimeRange: 3
+  FoodDetectDistance: 0.5
   PatrolsAmount: 3
   StomachCapacity: 100
   StomachRequirement: 95
@@ -555,7 +556,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.1
+  m_Radius: 1.03
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!195 &195368577133448172
 NavMeshAgent:

@@ -7,7 +7,7 @@ public class AntsIntermediate : MonoBehaviour
 {
     public List<Food> DetectedFoods = new List<Food>();
     public List<Food> FoodsInNest = new List<Food>();
-
+    public List<Vector3> StorageLocations = new List<Vector3>();
     public float CarryRange;
     public float RandomTimeRange;
     public float FoodDetectDistance = 1f;
@@ -43,6 +43,7 @@ public class AntsIntermediate : MonoBehaviour
     public bool OffMainTargetManager;
     public bool isSendingDistressSignal;
     public bool TestMode;
+    public bool AntIsStucked;
     private bool _FoodRangeManagement;
     public Transform DistressSignalObject;
     public Transform InteractionPoint;
@@ -81,9 +82,38 @@ public class AntsIntermediate : MonoBehaviour
 
         InvokeRepeating("Digestion", StomachDigestTime, StomachDigestTime);
 
-        //DebugCheck();
+        InvokeRepeating("DebugManagement", 5f, 5f);
 	}
     #endregion
+
+    void DebugManagement()
+    {
+        if(AntIsStucked)
+        {
+            return;
+        }
+
+        StorageLocations.Add(transform.position);
+        Debug.Log(StorageLocations.Count);
+
+        if(StorageLocations.Count > 2)
+        {
+            StorageLocations.RemoveAt(0);
+        }
+
+        if(StorageLocations.Count == 2)
+        {
+            if(StorageLocations[0].magnitude == StorageLocations[1].magnitude)
+            {
+                Debug.Log(transform.name + " doesn't move" + StorageLocations[0].magnitude + " " + StorageLocations[1].magnitude);
+
+                StorageLocations.Clear();
+
+                AntIsStucked = true;
+            }
+
+        }
+    }
 
     void MovementSpeedManagement(bool Activate, int Divide)
     {
@@ -333,6 +363,7 @@ public class AntsIntermediate : MonoBehaviour
             if (MainTarget.GetComponent<Food>())
             {
                 Food _MainFood = MainTarget.GetComponent<Food>();
+
                 if (_MainFood.IsBeingCarried) // once food is being carried, check
                 {
                     if (_MainFood.MainCarryAnt != transform)//if its not you carry , then u assist
@@ -366,12 +397,16 @@ public class AntsIntermediate : MonoBehaviour
                         }
                     }
                 }
-                else // if food is not being carried and is being placed
+                else if(_MainFood.IsBeingCarried == false)// if food is not being carried and is being placed
                 {
                     if (_MainFood.isBeingPlaced)
                     {
                         AssistReset();
                     }
+                }
+                else
+                {
+                   
                 }
             }
         }
@@ -615,7 +650,7 @@ public class AntsIntermediate : MonoBehaviour
         }
         else
         {
-            Debug.Log("No food in nest");
+            //Debug.Log("No food in nest");
 
             OnGoingDetectedFoods(DetectedFoods);
         }
@@ -647,7 +682,7 @@ public class AntsIntermediate : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning(transform.name + " hasn't found any food - relocating food");
+            Debug.Log(transform.name + " hasn't found any food - relocating food");
 
             OnFoodsInNest();
 
@@ -674,7 +709,7 @@ public class AntsIntermediate : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("No Food left.");
+            Debug.Log("No Food left.");
 
             float t = Random.Range(0, RandomTimeRange); // 
 
@@ -804,7 +839,7 @@ public class AntsIntermediate : MonoBehaviour
 
             if (_MainFood.transform == other.transform)
             {
-                Agent260.speed = 0f;
+                MovementSpeedManagement(false, 0);
                 Agent260.velocity = Vector3.zero;
                 //Debug.Log(transform.name + " Check interaction ");
 
@@ -817,9 +852,10 @@ public class AntsIntermediate : MonoBehaviour
                         _MainFood.isBeingLocated = true;
 
                         MainTarget = _MainFood.transform;
-                        //MainTarget = null;
+                        
 
-                        DistressSignal();
+
+                        DistressSignal(_MainFood);
                     }
                     else
                     {
@@ -875,7 +911,7 @@ public class AntsIntermediate : MonoBehaviour
     #endregion
 
     #region Distress Signal
-    void DistressSignal()
+    void DistressSignal(Food foodie)
     {
         Debug.Log(transform.name + " sending a distress signal...");
 
@@ -883,7 +919,9 @@ public class AntsIntermediate : MonoBehaviour
 
         DistressSignalManager DS = Instantiate(DistressSignalObject.GetComponent<DistressSignalManager>(), transform.position, Quaternion.identity);
 
-        DS.TargetedFood = MainTarget;
+        DS.TargetedFood = foodie.transform;
+
+        DS.DistressSender = transform;
 
         PatrollingAroundFood();
     }
@@ -1015,5 +1053,18 @@ public class AntsIntermediate : MonoBehaviour
         float SizeArea = CarryRange* (ObjectToBeCarry.localPosition.z + ObjectToBeCarry.localPosition.y + ObjectToBeCarry.localPosition.x);
 
         CarryPoint.localPosition = new Vector3(CarryPoint.localPosition.x, SizeArea,CarryPoint.localPosition.z );
+    }
+
+    public void OnReceivedSignals(Transform _targetedFood)
+    {
+        isIdling = false;
+
+        MainTarget = _targetedFood;
+
+        OffMainTargetManager = false;
+
+        MovementSpeedManagement(true, 0);
+
+        Agent260.SetDestination(_targetedFood.position);
     }
 }

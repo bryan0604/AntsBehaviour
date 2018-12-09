@@ -283,30 +283,38 @@ public class AntsIntermediate : MonoBehaviour
                     {
                         Food _MainFood = item.GetComponent<Food>();
 
-                        if (_MainFood.transform == MainTarget.transform)
+                        if (MainTarget == null)
                         {
-                            if (_MainFood.GetComponent<Food>())
+
+                            Debug.LogWarning(transform.name + " something went wrong here!");
+                        }
+                        else
+                        {
+                            if (_MainFood.transform == MainTarget.transform)
                             {
-                                if (_MainFood.isDepeleted)
+                                if (_MainFood.GetComponent<Food>())
                                 {
-                                    FoodisAtMouth = false;
+                                    if (_MainFood.isDepeleted)
+                                    {
+                                        isFeeding = false;
 
-                                    MainTarget = null;
+                                        FoodisAtMouth = false;
 
-                                    isFeeding = false;
+                                        MainTarget = null;
 
-                                    //Destroy(f);
+                                        //Destroy(f);
 
-                                    Debug.Log(transform.name + " food depeleted!");
-                                }
-                                else
-                                {
-                                    FoodisAtMouth = true;
+                                        Debug.Log(transform.name + " food depeleted!");
+                                    }
+                                    else
+                                    {
+                                        FoodisAtMouth = true;
 
-                                    MainTarget.GetComponent<Food>().ConsumingFood(1);
+                                        MainTarget.GetComponent<Food>().ConsumingFood(1);
+                                    }
                                 }
                             }
-                        }
+                        }  
                     }
                 }
 
@@ -867,7 +875,7 @@ public class AntsIntermediate : MonoBehaviour
                 else if (_MainFood.IsBeingCarried)
                 {
                     if (isHelpingCarryAnObject) return;
-
+                    if (_MainFood.isSmallPiece) return;
                     Debug.Log(transform.name + " Initiate helping to carry  ");
 
                     _InteractCollider.enabled = false;
@@ -907,6 +915,8 @@ public class AntsIntermediate : MonoBehaviour
         _InteractCollider.enabled = false;
 
         food.ProcessingFoodBreakdown(CarryPoint,this);
+
+        //food.isSmallPiece = true;
     }
     #endregion
 

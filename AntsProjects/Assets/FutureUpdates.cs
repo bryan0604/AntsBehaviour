@@ -9,14 +9,14 @@
 // 7. Introducing A smaller piece of food. (DONE)
 // 8. create a variable for Patrols Range.
 // 9. Ant's CarryPoint to have a correction sizing mechanics. might wanna use Scale instead of position
-// 10. Ant's facing the correct object target.
+// 10. Ant's facing the correct object target. (DONE)
 #endregion
 
 #region Errors Pending
 //Errors
 // 1. Food passes through Ants when food size reduced.
 // 2. Need to clear isSendingDistressSignal to False.
-// 3.
+// 3. Only sender Signal will stuck when send food home.
 #endregion
 
 #region Error Solved

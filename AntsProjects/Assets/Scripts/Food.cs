@@ -17,7 +17,7 @@ public class Food : MonoBehaviour
     public bool isDepeleted;
     public bool isBeingLocated;
     public string VoidFoodDecay = "FoodDecay";
-
+    public bool isSmallPiece;
     public Material myMats;
     public Material decaymats;
 
@@ -51,6 +51,8 @@ public class Food : MonoBehaviour
         _piecefood.FoodCapacity = 10;
 
         _piecefood.MainCarryAnt = _Ant.transform;
+
+        _piecefood.isSmallPiece = true;
 
         _Ant.MainTarget = _piecefood.transform;
 

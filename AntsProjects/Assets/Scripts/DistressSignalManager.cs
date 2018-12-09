@@ -32,9 +32,11 @@ public class DistressSignalManager : MonoBehaviour
         {
             if (_ant.isIdling)
             {
-                Debug.LogWarning(_ant.transform.name + " is idle");
+                Debug.LogWarning(_ant.transform.name + " received a distress Signals");
 
                 _ant.OnReceivedSignals(TargetedFood);
+
+                DistressSender = null;
             }
             else
             {
